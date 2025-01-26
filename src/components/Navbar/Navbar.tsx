@@ -8,8 +8,8 @@ export function Navbar() {
       <div className="container">
         <a className={styles.brand} href="/">
           <img src={pen} alt="QuickPen" className={styles.logo} />
-          QuickPen
         </a>
+        <p className={`${styles.brand} text-start m-0`}>QuickPen</p>
         <button className="btn btn-primary">Login</button>
       </div>
     </nav>
