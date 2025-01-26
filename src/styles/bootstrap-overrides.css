@@ -1,0 +1,11 @@
+/* Only override Bootstrap variables and components that need customization */
+.btn-primary {
+  --bs-btn-bg: var(--primary-color);
+  --bs-btn-border-color: var(--primary-color);
+  --bs-btn-hover-bg: var(--secondary-color);
+  --bs-btn-hover-border-color: var(--secondary-color);
+}
+
+.navbar {
+  --bs-navbar-bg: rgba(248, 248, 248, 0.95);
+}
