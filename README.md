@@ -1,46 +1,74 @@
-# Getting Started with Create React App
+# QuickPen
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+QuickPen is a web application designed to help writers build consistency through timed writing sprints. Track your progress, maintain streaks, and improve your writing habits.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Timed Writing Sprints**: Set custom duration goals and challenge yourself to write without distractions
+- **Progress Tracking**: Monitor your word count, WPM, and writing streaks
+- **Writing Analytics**: View your writing statistics and track improvement over time
+- **Pro Features**: Advanced analytics, custom tags, and export options
 
-### `npm start`
+## Try It Out
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Visit [quick-pen.web.app](https://quick-pen.web.app) to start your writing journey.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Free Tier
+- Unlimited writing sprints
+- Basic progress tracking
+- Daily streaks
 
-### `npm test`
+### Pro Tier ($5/month)
+- Everything in Free
+- Advanced analytics
+- Custom tags
+- Export options
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Development
 
-### `npm run build`
+While this is a commercial SaaS project, we welcome contributions from the community! The repository includes the React frontend and Firebase configuration, though sensitive credentials are managed through environment variables, so open-source developers should focus on frontend contributions.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Setup
+1. Clone and install dependencies:
+   ```bash
+   git clone https://github.com/yourusername/quickpen.git
+   cd quickpen
+   npm install
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Start the development server:
+   ```bash
+   npm start
+   ```
 
-### `npm run eject`
+## CI/CD
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+This project uses GitHub Actions for continuous integration and deployment to Firebase Hosting.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Automatic Deployments
+- Merges to `main` branch automatically deploy to [quick-pen.web.app](https://quick-pen.web.app)
+- Pull requests generate preview deployments for testing
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Contributing
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+We appreciate all contributions! Here's how you can help:
 
-## Learn More
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Acknowledgments
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Prototyped with vanilla JS and a Go backend
+- Migrated to React and Firebase
+- Inspired by my wife's writing sprint techniques and habit-building principles
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
