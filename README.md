@@ -35,8 +35,8 @@ While this is a commercial SaaS project, we welcome contributions from the commu
 ### Setup
 1. Clone and install dependencies:
    ```bash
-   git clone https://github.com/yourusername/quickpen.git
-   cd quickpen
+   git clone https://github.com/nbird11/quick-pen.git
+   cd quick-pen
    npm install
    ```
 
