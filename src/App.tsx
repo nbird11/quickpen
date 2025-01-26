@@ -88,7 +88,7 @@ function App() {
 
       <footer className={styles.footer}>
         <div className="container text-center">
-          <p className="mb-0">© 2024 QuickPen. All rights reserved.</p>
+          <p className="mb-0">&copy; {new Date().getFullYear()} QuickPen. All rights reserved.</p>
         </div>
       </footer>
     </div>
