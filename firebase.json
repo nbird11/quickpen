@@ -21,7 +21,7 @@
     }
   ],
   "hosting": {
-    "target": "quick-pen",
+    "target": "quickpen",
     "public": "build",
     "ignore": [
       "firebase.json",
