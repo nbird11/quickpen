@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import styles from './Navbar.module.css';
 import pen from '../../assets/pen.svg';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAppSelector } from '../../store/hooks';
 import { authService } from '../../services/auth';
 import { AuthModal } from '../AuthModal/AuthModal';
 
 export function Navbar() {
-  const { user } = useAuth();
+  const { user } = useAppSelector(state => state.auth);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleAuth = async (provider: 'google' | 'anonymous' | 'email') => {
@@ -19,7 +19,7 @@ export function Navbar() {
           await authService.signInAnonymously();
           break;
         case 'email':
-          // Handle email sign in separately with a form
+          alert('Email sign in not implemented yet');
           break;
       }
       setShowAuthModal(false);

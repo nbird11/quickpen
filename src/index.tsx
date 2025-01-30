@@ -7,7 +7,8 @@ import './styles/index.css';
 import './styles/theme.css';
 import './styles/bootstrap-overrides.css';
 import App from './App';
-import { AuthProvider } from './contexts/AuthContext';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -15,9 +16,9 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <AuthProvider>
+    <Provider store={store}>
       <App />
-    </AuthProvider>
+    </Provider>
   </React.StrictMode>
 );
 
