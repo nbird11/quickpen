@@ -12,6 +12,7 @@
     "@types/react-dom": "^18.3.5",
     "ajv": "^8.17.1",
     "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
     "firebase": "^11.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
