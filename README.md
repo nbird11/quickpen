@@ -50,7 +50,7 @@ While this is a commercial SaaS project, we welcome contributions from the commu
 This project uses GitHub Actions for continuous integration and deployment to Firebase Hosting.
 
 ### Automatic Deployments
-- Merges to `main` branch automatically deploy to [quick-pen.web.app](https://quick-pen.web.app)
+- Merges to `main` branch automatically deploy to [quickpen.web.app](https://quickpen.web.app)
 - Pull requests generate preview deployments for testing
 
 ## Contributing
