@@ -1,6 +1,6 @@
-import { 
-  signInWithPopup, 
-  GoogleAuthProvider, 
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -31,4 +31,4 @@ export const authService = {
   signOut: async (): Promise<void> => {
     return firebaseSignOut(auth);
   }
-}; 
+};

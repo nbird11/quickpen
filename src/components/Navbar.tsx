@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import styles from './Navbar.module.css';
-import pen from '../../assets/pen.svg';
-import { useAppSelector } from '../../store/hooks';
-import { authService } from '../../services/auth';
-import { AuthModal } from '../AuthModal/AuthModal';
+import pen from '../assets/pen.svg';
+import { useAppSelector } from '../store/hooks';
+import { authService } from '../services/auth';
+import { AuthModal } from './AuthModal';
 
 export function Navbar() {
   const { user } = useAppSelector(state => state.auth);
@@ -30,22 +29,22 @@ export function Navbar() {
 
   return (
     <>
-      <nav className={`navbar navbar-expand-lg navbar-light ${styles.navbar}`}>
+      <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
         <div className="container">
-          <a className={styles.brand} href="/">
-            <img src={pen} alt="QuickPen" className={styles.logo} />
+          <a className="navbar-brand d-flex align-items-center gap-3 text-primary" href="/">
+            <img src={pen} alt="QuickPen" className="d-block" style={{ width: '35px', height: '35px' }} />
+            <span className="fw-semibold text-dark text-opacity-80">QuickPen</span>
           </a>
-          <p className={`${styles.brand} text-start m-0`}>QuickPen</p>
-          <button 
+          <button
             className={`btn ${user ? 'btn-outline-primary' : 'btn-primary'}`}
             onClick={() => user ? authService.signOut() : setShowAuthModal(true)}
           >
-            {user ? 'Sign Out' : 'Sign In'}
+            {user ? 'Logout' : 'Login'}
           </button>
         </div>
       </nav>
 
-      <AuthModal 
+      <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onSelectProvider={handleAuth}

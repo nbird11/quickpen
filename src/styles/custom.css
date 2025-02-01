@@ -1,0 +1,39 @@
+:root {
+  --bs-green-100: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.80)));
+  --bs-green-200: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.60)));
+  --bs-green-300: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.40)));
+  --bs-green-400: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.20)));
+  --bs-green-500: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.00)));
+  --bs-green-600: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.10)));
+  --bs-green-700: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.20)));
+  --bs-green-800: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.30)));
+  --bs-green-900: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.40)));
+
+  --bg-sepia-light: #f5f0e7;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--bs-green-600);
+  --bs-btn-border-color: var(--bs-green-600);
+  --bs-btn-hover-bg: var(--bs-green-700);
+  --bs-btn-hover-border-color: var(--bs-green-700);
+  --bs-btn-active-bg: var(--bs-green-700);
+  --bs-btn-active-border-color: var(--bs-green-700);
+}
+
+.btn-outline-primary {
+  --bs-btn-border-color: var(--bs-green-700);
+  --bs-btn-color: var(--bs-green-700);
+  --bs-btn-hover-border-color: var(--bs-green-600);
+  --bs-btn-hover-bg: var(--bs-green-600);
+  --bs-btn-active-bg: var(--bs-green-600);
+  --bs-btn-active-border-color: var(--bs-green-600);
+}
+
+.border-primary {
+  border-color: var(--bs-green-400) !important;
+}
+
+.bg-sepia-light {
+  background-color: var(--bg-sepia-light);
+}
