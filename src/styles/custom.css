@@ -1,13 +1,13 @@
 :root {
-  --bs-green-100: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.80)));
-  --bs-green-200: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.60)));
-  --bs-green-300: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.40)));
-  --bs-green-400: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.20)));
-  --bs-green-500: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 + 0.00)));
-  --bs-green-600: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.10)));
-  --bs-green-700: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.20)));
-  --bs-green-800: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.30)));
-  --bs-green-900: hsl(from rgb(from var(--bs-green) r g b) h s calc(l * (1 - 0.40)));
+  --bs-green-100: #44dc96;
+  --bs-green-200: #29d786;
+  --bs-green-300: #23bd76;
+  --bs-green-400: #1ea265;
+  --bs-green-500: #198754;
+  --bs-green-600: #177a4c;
+  --bs-green-700: #146c43;
+  --bs-green-800: #115e3b;
+  --bs-green-900: #0f5132;
 
   --bg-sepia-light: #f5f0e7;
 }
