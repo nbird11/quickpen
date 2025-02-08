@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect } from 'react';
 import { auth } from '../services/firebase';
 import { useAppDispatch } from '../store/hooks';

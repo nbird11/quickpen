@@ -5,7 +5,9 @@
   "targets": {
     "quickpen-99f75": {
       "hosting": {
-        "quickpen": ["quickpen"]
+        "quickpen": [
+          "quickpen"
+        ]
       }
     }
   }
