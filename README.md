@@ -1,50 +1,81 @@
-# React + TypeScript + Vite
+# QuickPen
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+QuickPen is a web application designed to help writers build consistency through timed writing sprints. Track your progress, maintain streaks, and improve your writing habits.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Timed Writing Sprints**: Set custom duration goals and challenge yourself to write without distractions
+- **Progress Tracking**: Monitor your word count, WPM, and writing streaks
+- **Writing Analytics**: View your writing statistics and track improvement over time
+- **Pro Features**: Advanced analytics, custom tags, and export options
 
-## Expanding the ESLint configuration
+## Try It Out
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Visit [quick-pen.web.app](https://quick-pen.web.app) to start your writing journey.
 
-- Configure the top-level `parserOptions` property like this:
+### Free Tier
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- Unlimited writing sprints
+- Basic progress tracking
+- Daily streaks
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Pro Tier ($5/month)
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- Everything in Free
+- Advanced analytics
+- Custom tags
+- Export options
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Development
+
+While this is a commercial SaaS project, we welcome contributions from the community! The repository includes the React frontend and Firebase configuration, though sensitive credentials are managed through environment variables, so open-source developers should focus on frontend contributions.
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Setup
+
+1. Clone and install dependencies:
+
+   ```bash
+   git clone https://github.com/nbird11/quick-pen.git
+   cd quick-pen
+   npm install
+   ```
+
+2. Start the development server:
+
+   ```bash
+   npm start
+   ```
+
+## CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment to Firebase Hosting.
+
+### Automatic Deployments
+
+- Merges to `main` branch automatically deploy to [quickpen.web.app](https://quickpen.web.app)
+- Pull requests generate preview deployments for testing
+
+## Contributing
+
+We appreciate all contributions! Here's how you can help:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## Acknowledgments
+
+- Prototyped with vanilla JS and a Go backend
+- Migrated to React and Firebase
+- Inspired by my wife's writing sprint techniques and habit-building principles
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
