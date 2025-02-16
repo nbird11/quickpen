@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { serializeUser } from '../services/auth';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -10,7 +9,7 @@ export const useAuth = () => {
   const { user, loading, error } = useAppSelector(state => state.auth);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth,
+    const unsubscribe = auth.onAuthStateChanged(
       (user) => {
         dispatch(setUser(serializeUser(user)));
       },

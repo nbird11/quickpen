@@ -1,12 +1,11 @@
 import React from 'react';
 import { useEffect } from 'react';
-import { auth } from '../services/firebase';
+import firebase, { auth } from '../services/firebase';
 import { useAppDispatch } from '../store/hooks';
 import { setUser, setLoading } from '../store/slices/authSlice';
-import type { User } from 'firebase/auth';
 import type { SerializedUser } from '../types/auth';
 
-function serializeUser(user: User | null): SerializedUser | null {
+function serializeUser(user: firebase.User | null): SerializedUser | null {
   if (!user) return null;
   return {
     uid: user.uid,

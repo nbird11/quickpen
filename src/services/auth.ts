@@ -1,8 +1,7 @@
-import { signOut as firebaseSignOut, User } from 'firebase/auth';
-import { auth } from './firebase';
+import firebase, { auth } from './firebase';
 import { SerializedUser } from '../types/auth';
 
-export const serializeUser = (user: User | null): SerializedUser | null => {
+export const serializeUser = (user: firebase.User | null): SerializedUser | null => {
   if (!user) return null;
 
   return {
@@ -15,6 +14,6 @@ export const serializeUser = (user: User | null): SerializedUser | null => {
 
 export const authService = {
   signOut: async (): Promise<void> => {
-    return firebaseSignOut(auth);
+    return auth.signOut();
   }
 };
