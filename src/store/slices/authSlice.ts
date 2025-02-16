@@ -1,17 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export interface SerializedUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  isAnonymous: boolean;
-}
-
-interface AuthState {
-  user: SerializedUser | null;
-  loading: boolean;
-  error: string | null;
-}
+import { SerializedUser, AuthState } from '../../types/auth';
 
 const initialState: AuthState = {
   user: null,

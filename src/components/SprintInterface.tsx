@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import timerIcon from '../assets/timer.svg';
 
 interface TimerState {
   timeRemaining: number; // in seconds
@@ -214,7 +215,7 @@ const SprintInterface: React.FC = () => {
                 {formatTime(timer.timeRemaining)}
               </div>
               <img
-                src="./timer.svg"
+                src={timerIcon}
                 alt="Toggle Timer"
                 className="opacity-75 hover-opacity-100 cursor-pointer"
                 style={{ width: '24px', height: '24px', transition: 'opacity 0.2s ease' }}
@@ -225,7 +226,7 @@ const SprintInterface: React.FC = () => {
               <div
                 className="progress-bar bg-success"
                 style={{
-                  width: `${((timer.totalDuration - timer.timeRemaining) / timer.totalDuration) * 100}%`,
+                  width: `${100 - ((timer.totalDuration - timer.timeRemaining) / timer.totalDuration) * 100}%`,
                   transition: 'width 1s linear'
                 }}
               />

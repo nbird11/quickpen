@@ -1,6 +1,6 @@
 import { signOut as firebaseSignOut, User } from 'firebase/auth';
 import { auth } from './firebase';
-import { SerializedUser } from '../store/slices/authSlice';
+import { SerializedUser } from '../types/auth';
 
 export const serializeUser = (user: User | null): SerializedUser | null => {
   if (!user) return null;
