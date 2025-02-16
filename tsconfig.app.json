@@ -15,12 +15,19 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    
+
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src.vite.init", "src/vite-env.d.ts"]
+  "include": [
+    "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.module.css",
+    "src/**/*.svg",
+    "src/vite-env.d.ts"
+  ]
 }

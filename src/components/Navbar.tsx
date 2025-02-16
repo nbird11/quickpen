@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import pen from '../assets/pen.svg';
 import { useAppSelector } from '../store/hooks';
@@ -15,7 +14,7 @@ export function Navbar() {
   useEffect(() => {
     if (showAuth) {
       const ui = firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(auth);
-      
+
       ui.start('#firebaseui-auth-container', {
         signInOptions: [
           GoogleAuthProvider.PROVIDER_ID,

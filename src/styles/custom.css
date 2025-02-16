@@ -13,10 +13,20 @@
   --bs-primary-hover: var(--bs-green-700);
   /* --bs-secondary: var(--bs-gray-600); */
   --bs-secondary-hover: var(--bs-gray-700);
-  
+
   --bg-sepia-light: #f5f0e7;
 }
 
+/* Utility Classes */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-opacity-100:hover {
+  opacity: 1 !important;
+}
+
+/* Overrides */
 .btn-primary {
   --bs-btn-bg: var(--bs-primary);
   --bs-btn-border-color: var(--bs-primary);
