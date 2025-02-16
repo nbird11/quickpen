@@ -3,9 +3,8 @@ import pen from '../assets/pen.svg';
 import { useAppSelector } from '../store/hooks';
 import { authService } from '../services/auth';
 import * as firebaseui from 'firebaseui';
-import { auth } from '../services/firebase';
+import firebase from '../services/firebase';
 import 'firebaseui/dist/firebaseui.css';
-import { EmailAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 
 export function Navbar() {
   const { user } = useAppSelector(state => state.auth);
@@ -13,16 +12,19 @@ export function Navbar() {
 
   useEffect(() => {
     if (showAuth) {
-      const ui = firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(auth);
+      const ui = firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(firebase.auth());
 
       ui.start('#firebaseui-auth-container', {
         signInOptions: [
-          GoogleAuthProvider.PROVIDER_ID,
           {
-            provider: EmailAuthProvider.PROVIDER_ID,
+            provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+            scopes: ['profile', 'email']
+          },
+          {
+            provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
             requireDisplayName: false,
           },
-          firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID,
+          firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
         ],
         signInFlow: 'popup',
         callbacks: {
@@ -31,6 +33,8 @@ export function Navbar() {
             return false; // Don't redirect
           },
         },
+        tosUrl: '/terms',
+        privacyPolicyUrl: '/privacy'
       });
     }
   }, [showAuth]);
