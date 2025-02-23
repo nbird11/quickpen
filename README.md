@@ -11,7 +11,7 @@ QuickPen is a web application designed to help writers build consistency through
 
 ## Try It Out
 
-Visit [quick-pen.web.app](https://quick-pen.web.app) to start your writing journey.
+Visit [quickpen.web.app](https://quickpen.web.app) to start your writing journey.
 
 ### Free Tier
 
