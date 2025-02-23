@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAppSelector } from '../store/hooks';
+import { sprintService } from '../services/sprint';
+import { Sprint } from '../types/sprint';
 import timerIcon from '../assets/timer.svg';
 
 interface TimerState {
@@ -15,6 +18,7 @@ interface SprintState {
 }
 
 const SprintInterface: React.FC = () => {
+  const { user } = useAppSelector(state => state.auth);
   // Timer state
   const [timer, setTimer] = useState<TimerState>({
     timeRemaining: 0,
@@ -44,13 +48,13 @@ const SprintInterface: React.FC = () => {
     // Try MM:SS format
     if (input.includes(':')) {
       const [minutes, seconds] = input.split(':').map(Number);
-      if (isNaN(minutes) || isNaN(seconds) || seconds >= 60) return null;
+      if (isNaN(minutes) || isNaN(seconds) || seconds >= 60 || minutes < 0 || seconds < 0) return null;
       return (minutes * 60) + seconds;
     }
 
     // Try minutes only format
     const minutes = Number(input);
-    return isNaN(minutes) ? null : minutes * 60;
+    return isNaN(minutes) || minutes <= 0 ? null : minutes * 60;
   };
 
   // Helper function to format time as MM:SS
@@ -92,22 +96,37 @@ const SprintInterface: React.FC = () => {
 
   // Timer control functions
   const startTimer = () => {
-    if (timerInterval.current) clearInterval(timerInterval.current);
+    console.log('Starting timer:', { timer, sprint });
+    if (timerInterval.current) {
+      console.log('Clearing existing timer interval');
+      clearInterval(timerInterval.current);
+    }
 
     timerInterval.current = setInterval(() => {
       setTimer(prev => {
-        if (prev.timeRemaining <= 0 || prev.isPaused) return prev;
-
-        const newTimeRemaining = prev.timeRemaining - 1;
-        if (newTimeRemaining <= 0) {
-          clearInterval(timerInterval.current!);
-          // TODO: Handle sprint completion
+        // Skip if paused or already at 0
+        if (prev.isPaused || prev.timeRemaining <= 0) {
+          return prev;
         }
 
+        const newTimeRemaining = prev.timeRemaining - 1;
+        
+        // If we hit 0, clear the interval
+        if (newTimeRemaining === 0) {
+          clearInterval(timerInterval.current!);
+        }
+        
         return { ...prev, timeRemaining: newTimeRemaining };
       });
     }, 1000);
   };
+
+  // Watch for timer reaching 0 and handle completion
+  useEffect(() => {
+    if (timer.timeRemaining === 0 && sprint.isActive) {
+      handleSprintCompletion(true);
+    }
+  }, [timer.timeRemaining, sprint.isActive]);
 
   const togglePause = () => {
     setTimer(prev => ({ ...prev, isPaused: !prev.isPaused }));
@@ -117,11 +136,7 @@ const SprintInterface: React.FC = () => {
     setTimer(prev => ({ ...prev, isVisible: !prev.isVisible }));
   };
 
-  const handleDiscard = () => {
-    if (!window.confirm('Are you sure you want to discard this sprint? All progress will be lost.')) {
-      return;
-    }
-
+  const resetInterface = () => {
     if (timerInterval.current) {
       clearInterval(timerInterval.current);
     }
@@ -144,7 +159,42 @@ const SprintInterface: React.FC = () => {
     setDurationError(null);
   };
 
-  const handleEndSprint = () => {
+  const handleDiscard = () => {
+    if (!window.confirm('Are you sure you want to discard this sprint? All progress will be lost.')) {
+      return;
+    }
+
+    resetInterface();
+  };
+
+  // Handle sprint completion
+  const handleSprintCompletion = async (isCompleted: boolean) => {
+    // Prevent multiple completions
+    if (!sprint.isActive) return;
+
+    try {
+      const sprintData = {
+        userId: user!.uid,
+        content: sprint.content,
+        wordCount: sprint.wordCount,
+        duration: timer.totalDuration,
+        completedAt: new Date(),
+        isCompleted,
+        ...((!isCompleted && { actualDuration: timer.totalDuration - timer.timeRemaining }))
+      } as Omit<Sprint, 'id'>;
+
+      // Save first
+      await sprintService.saveSprint(sprintData);
+      
+      // Then reset interface
+      resetInterface();
+    } catch (error) {
+      console.error('Error saving sprint:', error);
+      alert('Failed to save your sprint. Please try again.');
+    }
+  };
+
+  const handleEndSprint = async () => {
     if (timer.timeRemaining > 0) {
       if (sprint.content.trim().length === 0) {
         if (window.confirm('No content was written. Discard this sprint?')) {
@@ -156,8 +206,7 @@ const SprintInterface: React.FC = () => {
       }
     }
 
-    // TODO: Save sprint data
-    handleDiscard();
+    await handleSprintCompletion(false);
   };
 
   // Content change handler
@@ -259,6 +308,7 @@ const SprintInterface: React.FC = () => {
 
           <div>
             <textarea
+              id="sprint-content"
               className="form-control mb-2"
               value={sprint.content}
               onChange={handleContentChange}
