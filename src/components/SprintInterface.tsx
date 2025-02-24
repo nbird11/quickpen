@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Container, Card, Form, Button } from 'react-bootstrap';
 import { useAppSelector } from '../store/hooks';
 import { sprintService } from '../services/sprint';
 import { Sprint } from '../types/sprint';
@@ -229,100 +230,116 @@ const SprintInterface: React.FC = () => {
   }, []);
 
   return (
-    <section className="container sprint-interface">
+    <Container as="section" className="sprint-interface">
       {!sprint.isActive ? (
-        <div className="card p-4">
-          <h2 className="mb-4">Start a Writing Sprint</h2>
-          <div className="mb-3">
-            <label htmlFor="duration" className="form-label">
-              Duration: <span className="font-monospace">([M...]M[:SS])</span>
-            </label>
-            <input
-              type="text"
-              id="duration"
-              className={`form-control ${durationError ? 'is-invalid' : ''}`}
-              value={durationInput}
-              onChange={(e) => {
-                setDurationInput(e.target.value);
-                setDurationError(null);
-              }}
-              placeholder="e.g. 10:00, 30, 90:30"
-            />
-            {durationError && (
-              <div className="invalid-feedback">{durationError}</div>
-            )}
-          </div>
-          <button type="button" className="btn btn-primary" onClick={handleStartSprint}>
-            Start Sprint
-          </button>
-        </div>
-      ) : (
-        <div className="card p-4">
-          <div className="mb-4">
-            <div className="d-flex align-items-center justify-content-center gap-3">
-              <div className={`fs-1 font-monospace ${!timer.isVisible ? 'opacity-0' : ''}`}>
-                {formatTime(timer.timeRemaining)}
-              </div>
-              <img
-                src={timerIcon}
-                alt="Toggle Timer"
-                className="opacity-75 hover-opacity-100 cursor-pointer"
-                style={{ width: '24px', height: '24px', transition: 'opacity 0.2s ease' }}
-                onClick={toggleTimerDisplay}
-              />
-            </div>
-            <div className="progress mt-2" style={{ height: '4px' }}>
-              <div
-                className="progress-bar bg-success"
-                style={{
-                  width: `${100 - ((timer.totalDuration - timer.timeRemaining) / timer.totalDuration) * 100}%`,
-                  transition: 'width 1s linear'
+        <Card className="p-4">
+          <Card.Body>
+            <h2 className="mb-4">Start a Writing Sprint</h2>
+            <Form.Group className="mb-3">
+              <Form.Label htmlFor="duration">
+                Duration: <span className="font-monospace">([M...]M[:SS])</span>
+              </Form.Label>
+              <Form.Control
+                type="text"
+                id="duration"
+                isInvalid={!!durationError}
+                value={durationInput}
+                onChange={(e) => {
+                  setDurationInput(e.target.value);
+                  setDurationError(null);
                 }}
+                placeholder="e.g. 10:00, 30, 90:30"
               />
+              {durationError && <Form.Control.Feedback type="invalid">{durationError}</Form.Control.Feedback>}
+            </Form.Group>
+            <Button variant="primary" onClick={handleStartSprint}>Start Sprint</Button>
+          </Card.Body>
+        </Card>
+      ) : (
+        <div className="sprint-active">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex align-items-center gap-3">
+              <Button 
+                variant="outline-secondary" 
+                size="sm"
+                onClick={toggleTimerDisplay}
+              >
+                <img src={timerIcon} alt="Timer" className="me-2" style={{ width: '16px', height: '16px' }} />
+                {timer.isVisible ? 'Hide Timer' : 'Show Timer'}
+              </Button>
+              {timer.isVisible && (
+                <div className="timer-display">
+                  <span className="font-monospace">{formatTime(timer.timeRemaining)}</span>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={togglePause}
+                    className="ms-2"
+                  >
+                    {timer.isPaused ? '▶' : '⏸'}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div>
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={handleDiscard}
+                className="me-2"
+              >
+                Discard
+              </Button>
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={handleEndSprint}
+              >
+                End Sprint
+              </Button>
             </div>
           </div>
 
-          <div className="d-flex gap-2 justify-content-center mb-4 flex-column flex-sm-row">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={togglePause}
-            >
-              {timer.isPaused ? 'Resume' : 'Pause'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={handleDiscard}
-            >
-              Discard
-            </button>
-            <button
-              type="button"
-              className="btn btn-success"
-              onClick={handleEndSprint}
-            >
-              End Sprint
-            </button>
-          </div>
-
-          <div>
-            <textarea
-              id="sprint-content"
-              className="form-control mb-2"
-              value={sprint.content}
-              onChange={handleContentChange}
-              placeholder="Start writing here when the timer begins..."
-              disabled={timer.isPaused}
-              style={{ minHeight: '300px', resize: 'vertical' }}
+          <div className="progress mb-3" style={{ height: '4px' }}>
+            <div 
+              className={`progress-bar ${timer.timeRemaining / timer.totalDuration >= .5 ? 'bg-success' : timer.timeRemaining / timer.totalDuration >= .1 ? 'bg-warning' : 'bg-danger'}`}
+              role="progressbar"
+              style={{
+                width: `${(timer.timeRemaining / timer.totalDuration) * 100}%`,
+                transition: timer.isPaused ? 'none' : 'width 1s linear'
+              }}
+              aria-valuenow={(timer.timeRemaining / timer.totalDuration) * 100}
+              aria-valuemin={0}
+              aria-valuemax={100}
             />
-            <div className="text-end text-muted small">
-              Words: <span>{sprint.wordCount}</span>
+          </div>
+
+          <Form.Group>
+            <Form.Control
+              as="textarea"
+              rows={15}
+              value={sprint.content}
+              disabled={timer.isPaused}
+              onChange={handleContentChange}
+              placeholder="Start writing..."
+              className="mb-3"
+            />
+          </Form.Group>
+
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>Words: </strong>
+              <span className="font-monospace">{sprint.wordCount}</span>
             </div>
+            {timer.timeRemaining > 0 && !timer.isPaused && (
+              <div className="text-muted">
+                <small>Keep writing! Timer is running...</small>
+              </div>
+            )}
           </div>
         </div>
       )}
-    </section>
+    </Container>
   );
 };
 

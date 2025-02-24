@@ -1,3 +1,5 @@
+import { Container, Button } from 'react-bootstrap';
+
 export function Hero() {
   return (
     <section className="position-relative overflow-hidden py-5">
@@ -7,15 +9,15 @@ export function Hero() {
           zIndex: 1
         }}>
       </div>
-      <div className="container position-relative text-center text-white py-4 py-md-5" style={{ zIndex: 2 }}>
+      <Container className="position-relative text-center text-white py-4 py-md-5" style={{ zIndex: 2 }}>
         <h1 className="display-4 fw-bold mb-4" style={{ letterSpacing: '-0.5px' }}>
           Write Better, Write Faster
         </h1>
         <p className="lead mb-4">
           Track your writing progress with timed sprints, measure your word count, and build a consistent writing habit.
         </p>
-        <button className="btn btn-light btn-lg">Start Writing Now</button>
-      </div>
+        <Button variant="light" size="lg">Start Writing Now</Button>
+      </Container>
     </section>
   );
 }

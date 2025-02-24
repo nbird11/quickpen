@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navbar as BsNavbar, Container, Button, Modal } from 'react-bootstrap';
 import pen from '../assets/pen.svg';
 import { useAppSelector } from '../store/hooks';
 import { authService } from '../services/auth';
@@ -41,39 +42,33 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div className="container">
-          <a className="navbar-brand d-flex align-items-center gap-3 text-primary" href="/">
+      <BsNavbar expand="lg" className="bg-light shadow-sm">
+        <Container>
+          <BsNavbar.Brand href="/" className="d-flex align-items-center gap-3 text-primary">
             <img src={pen} alt="QuickPen" className="d-block" style={{ width: '35px', height: '35px' }} />
             <span className="fw-semibold text-dark text-opacity-80">QuickPen</span>
-          </a>
-          <button
-            className={`btn ${user ? 'btn-outline-primary' : 'btn-primary'}`}
+          </BsNavbar.Brand>
+          <Button
+            variant={user ? 'outline-primary' : 'primary'}
             onClick={() => user ? authService.signOut() : setShowAuth(true)}
           >
             {user ? 'Logout' : 'Login'}
-          </button>
-        </div>
-      </nav>
+          </Button>
+        </Container>
+      </BsNavbar>
 
-      {showAuth && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal fade show d-block">
-            <div className="modal-dialog modal-md modal-dialog-centered">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h2 className="modal-title h3">Sign In to QuickPen</h2>
-                  <button type="button" className="btn-close" onClick={() => setShowAuth(false)}></button>
-                </div>
-                <div className="modal-body">
-                  <div id="firebaseui-auth-container"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <Modal 
+        show={showAuth} 
+        onHide={() => setShowAuth(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title as="h2" className="h3">Sign In to QuickPen</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div id="firebaseui-auth-container"></div>
+        </Modal.Body>
+      </Modal>
     </>
   );
 }
