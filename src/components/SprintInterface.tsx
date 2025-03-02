@@ -3,6 +3,7 @@ import { Container, Card, Form, Button } from 'react-bootstrap';
 import { useAppSelector } from '../store/hooks';
 import { sprintService } from '../services/sprint';
 import { Sprint } from '../types/sprint';
+import { eventService, EVENTS } from '../services/events';
 import timerIcon from '../assets/timer.svg';
 
 interface TimerState {
@@ -97,9 +98,7 @@ const SprintInterface: React.FC = () => {
 
   // Timer control functions
   const startTimer = () => {
-    console.log('Starting timer:', { timer, sprint });
     if (timerInterval.current) {
-      console.log('Clearing existing timer interval');
       clearInterval(timerInterval.current);
     }
 
@@ -169,7 +168,7 @@ const SprintInterface: React.FC = () => {
   };
 
   // Handle sprint completion
-  const handleSprintCompletion = async (isCompleted: boolean) => {
+  const handleSprintCompletion = async (timerRanOut: boolean) => {
     // Prevent multiple completions
     if (!sprint.isActive) return;
 
@@ -180,12 +179,15 @@ const SprintInterface: React.FC = () => {
         wordCount: sprint.wordCount,
         duration: timer.totalDuration,
         completedAt: new Date(),
-        isCompleted,
-        ...((!isCompleted && { actualDuration: timer.totalDuration - timer.timeRemaining }))
+        endedEarly: !timerRanOut,  // Flip boolean: timerRanOut=true means endedEarly=false
+        ...(((!timerRanOut) && { actualDuration: timer.totalDuration - timer.timeRemaining }))
       } as Omit<Sprint, 'id'>;
 
       // Save first
       await sprintService.saveSprint(sprintData);
+      
+      // Emit event to notify other components
+      eventService.emit(EVENTS.SPRINT_COMPLETED);
       
       // Then reset interface
       resetInterface();

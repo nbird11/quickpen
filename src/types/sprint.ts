@@ -5,6 +5,6 @@ export interface Sprint {
   wordCount: number;
   duration: number;  // total duration in seconds
   completedAt: Date;
-  isCompleted: boolean;  // true if sprint was completed, false if discarded/ended early
+  endedEarly: boolean;  // true if ended before timer ran out, false if completed full duration
   actualDuration?: number;  // actual time spent if ended early
 }
