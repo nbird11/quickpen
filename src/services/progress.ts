@@ -65,7 +65,7 @@ export const progressService = {
       });
 
       // Filter sprints based on range
-      let sprints: Sprint[];
+      let rangeFilteredSprints: Sprint[];
       
       if (range === 'today') {
         // For 'today' range, use a more reliable approach to filter by day
@@ -90,18 +90,29 @@ export const progressService = {
           return dateStr === todayStr;
         };
         
-        sprints = allSprints.filter(sprint => {
+        rangeFilteredSprints = allSprints.filter(sprint => {
           const isToday = isDateFromToday(sprint.completedAt);
           return isToday;
         });
       } else {
         // For other ranges, filter by the range start date
-        sprints = rangeStart 
+        rangeFilteredSprints = rangeStart 
           ? allSprints.filter(sprint => sprint.completedAt >= rangeStart!)
           : allSprints;
       }
+      
+      // Calculate basic stats based on range-filtered sprints
+      const { wordCount, minutesWritten, averageWPM } = calculateBasicStats(rangeFilteredSprints);
+      
+      // Calculate streak using ALL sprints, independent of range
+      const currentStreak = calculateCurrentStreak(allSprints, timezone);
 
-      return calculateProgressStats(sprints, timezone);
+      return {
+        wordCount,
+        minutesWritten,
+        averageWPM,
+        currentStreak
+      };
     } catch (error) {
       console.error('Error in getProgress:', error);
       throw error;
@@ -110,15 +121,18 @@ export const progressService = {
 };
 
 /**
- * Calculate progress statistics from sprint data
+ * Calculate basic progress statistics from sprint data
  */
-function calculateProgressStats(sprints: Sprint[], timezone: string): ProgressStats {
+function calculateBasicStats(sprints: Sprint[]): {
+  wordCount: number;
+  minutesWritten: number;
+  averageWPM: number;
+} {
   if (sprints.length === 0) {
     return {
       wordCount: 0,
       minutesWritten: 0,
-      averageWPM: 0,
-      currentStreak: 0
+      averageWPM: 0
     };
   }
 
@@ -143,14 +157,10 @@ function calculateProgressStats(sprints: Sprint[], timezone: string): ProgressSt
   const minutesWritten = totalDurationSeconds / 60;
   const averageWPM = sprints.length > 0 ? totalWPM / sprints.length : 0;
 
-  // Calculate current streak
-  const currentStreak = calculateCurrentStreak(sprints, timezone);
-
   return {
     wordCount: totalWords,
     minutesWritten,
-    averageWPM,
-    currentStreak
+    averageWPM
   };
 }
 
