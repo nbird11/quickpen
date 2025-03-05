@@ -1,8 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import 'bootstrap/dist/css/bootstrap.min.css';
+// Import our custom theme instead of default Bootstrap CSS
+import './styles/custom.scss';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import './styles/custom.css';
+// We can keep the custom.css for additional styles not related to Bootstrap theming
 import App from './App.tsx';
 import { Provider } from 'react-redux';
 import { store } from './store/store';

@@ -1,0 +1,182 @@
+// Custom Bootstrap Theme for QuickPen
+// Based on colors from proto/static/styles/global.css
+
+// Override default Bootstrap variables before the import
+
+// QuickPen color scheme
+$primary: #3D6541; // Green from prototype
+$secondary: #AE9461; // Gold from prototype
+$accent1: #70566D; // Wine/purple accent
+$accent2: #C3DFE0; // Light blue accent
+$dark: #112A2B; // Dark background
+$light: #F8F8F8; // Light background
+
+// Keep default Bootstrap functional colors
+// $success: default; (green)
+// $info: default; (blue)
+// $warning: default; (yellow/orange)
+// $danger: default; (red)
+
+// Customize theme colors - add various tones
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "light": $light,
+  "dark": $dark,
+  "accent1": $accent1,
+  "accent2": $accent2,
+  "primary-light": lighten($primary, 20%),
+  "primary-dark": darken($primary, 10%),
+  "secondary-light": lighten($secondary, 20%),
+  "secondary-dark": darken($secondary, 10%) // Success, info, warning, danger use Bootstrap defaults
+);
+
+// Optional: Customize other Bootstrap variables
+$border-radius: 0.25rem;
+$border-radius-lg: 0.5rem;
+$border-radius-sm: 0.2rem;
+
+$font-family-sans-serif: 'Helvetica', sans-serif;
+$font-family-serif: 'Merriweather', serif;
+$font-family-base: $font-family-sans-serif;
+
+$headings-font-family: $font-family-sans-serif;
+
+// Import Bootstrap and its default variables
+@import "bootstrap/scss/bootstrap";
+
+// Additional custom styles
+
+// Add utility classes for accent colors
+.bg-accent1 {
+  background-color: $accent1;
+  color: white;
+}
+
+.bg-accent2 {
+  background-color: $accent2;
+  color: $dark;
+}
+
+.text-accent1 {
+  color: $accent1;
+}
+
+.text-accent2 {
+  color: $accent2;
+}
+
+.border-accent1 {
+  border-color: $accent1 !important;
+}
+
+.border-accent2 {
+  border-color: $accent2 !important;
+}
+
+.bg-sepia-light {
+  background-color: #f5f0e7;
+}
+
+// Customize button hover states
+.btn-primary {
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: darken($primary, 10%);
+    border-color: darken($primary, 12.5%);
+  }
+}
+
+.btn-secondary {
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: darken($secondary, 10%);
+    border-color: darken($secondary, 12.5%);
+  }
+}
+
+// Custom accent buttons
+.btn-accent1 {
+  color: white;
+  background-color: $accent1;
+  border-color: $accent1;
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: white;
+    background-color: darken($accent1, 10%);
+    border-color: darken($accent1, 12.5%);
+  }
+}
+
+.btn-accent2 {
+  color: $dark;
+  background-color: $accent2;
+  border-color: $accent2;
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: $dark;
+    background-color: darken($accent2, 10%);
+    border-color: darken($accent2, 12.5%);
+  }
+}
+
+// Fix for specific Firebase UI elements
+.firebaseui-idp-button[data-provider-id="password"] {
+  background-color: $primary !important;
+
+  &:hover {
+    background-color: darken($primary, 10%) !important;
+  }
+}
+
+.firebaseui-idp-button[data-provider-id="anonymous"] {
+  background-color: $secondary !important;
+
+  &:hover {
+    background-color: darken($secondary, 10%) !important;
+  }
+}
+
+// Additional styles for SprintHistoryContainer
+.list-group-item.active {
+  background-color: $primary;
+  border-color: $primary;
+  color: white;
+
+  .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
+
+  .badge.bg-accent1 {
+    background-color: lighten($accent1, 10%) !important;
+  }
+
+  .badge.bg-accent2 {
+    background-color: $accent2 !important;
+    color: $dark !important;
+  }
+}
+
+// Improve contrast for tag counts
+.badge.bg-accent2 {
+  color: $dark;
+}
+
+// Ensure consistent cursor behavior for tag delete button
+.badge span.tag-remove {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}

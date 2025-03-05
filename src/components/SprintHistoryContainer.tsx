@@ -244,7 +244,7 @@ const SprintHistoryContainer: React.FC = () => {
                             <div className="mb-1">
                               <strong>{sprint.wordCount} words</strong>
                               {sprint.tags && sprint.tags.length > 0 && (
-                                <Badge bg="info" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
+                                <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
                                   {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
                                 </Badge>
                               )}
@@ -265,7 +265,7 @@ const SprintHistoryContainer: React.FC = () => {
                             {sprint.tags.map(tag => (
                               <Badge
                                 key={tag}
-                                bg="secondary"
+                                bg="accent1"
                                 className="me-1 mb-1"
                                 style={{ fontSize: '0.7rem' }}
                               >
@@ -307,26 +307,25 @@ const SprintHistoryContainer: React.FC = () => {
                       rows={12}
                       value={selectedSprint.content}
                       readOnly
-                      className="mb-3"
+                      className="mb-3 border-primary"
                       style={{ minHeight: '250px', fontSize: '0.95rem', lineHeight: '1.5' }}
                       ref={contentViewerRef}
                     />
                   </Form.Group>
 
-                  <Card className="bg-light border-0 mb-4">
+                  <Card className="border-0 mb-4 bg-accent2 bg-opacity-25">
                     <Card.Body>
                       <h6 className="mb-3">Tags</h6>
                       <div className="d-flex flex-wrap mb-3">
                         {selectedSprint.tags?.map(tag => (
                           <Badge
                             key={tag}
-                            bg="secondary"
+                            bg="accent1"
                             className="me-2 mb-2 p-2"
                           >
                             {tag}
                             <span
-                              className="ms-2"
-                              style={{ cursor: 'pointer' }}
+                              className="ms-2 tag-remove"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleRemoveTag(tag);

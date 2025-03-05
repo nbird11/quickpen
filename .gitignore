@@ -41,3 +41,6 @@ proto/
 
 # Backups
 *.bak
+
+# Todos
+todo.txt
