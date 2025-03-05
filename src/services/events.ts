@@ -1,9 +1,9 @@
 export const EVENTS = {
-  SPRINT_COMPLETED: 'sprint_completed'
+  SPRINT_COMPLETED: "sprint_completed",
 };
 
 type EventCallback = () => void;
-type EventType = typeof EVENTS[keyof typeof EVENTS];
+type EventType = (typeof EVENTS)[keyof typeof EVENTS];
 
 class EventService {
   private listeners: Map<EventType, Set<EventCallback>> = new Map();
@@ -18,9 +18,9 @@ class EventService {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    
+
     this.listeners.get(event)!.add(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const callbacks = this.listeners.get(event);
@@ -40,10 +40,10 @@ class EventService {
   emit(event: EventType): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
-      callbacks.forEach(callback => callback());
+      callbacks.forEach((callback) => callback());
     }
   }
 }
 
 // Create singleton instance
-export const eventService = new EventService(); 
+export const eventService = new EventService();

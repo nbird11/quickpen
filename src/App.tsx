@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar';
 // Lazy load route components
 const Home = lazy(() => import('./pages/Home'));
 const QuickPen = lazy(() => import('./pages/QuickPen'));
+const History = lazy(() => import('./pages/History'));
 
 const App = () => {
   const { user, loading, error } = useAuth();
@@ -48,6 +49,10 @@ const App = () => {
           <Route
             path="/app"
             element={user ? <QuickPen /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/history"
+            element={user ? <History /> : <Navigate to="/" replace />}
           />
         </Routes>
       </Suspense>

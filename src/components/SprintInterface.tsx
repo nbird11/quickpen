@@ -110,12 +110,12 @@ const SprintInterface: React.FC = () => {
         }
 
         const newTimeRemaining = prev.timeRemaining - 1;
-        
+
         // If we hit 0, clear the interval
         if (newTimeRemaining === 0) {
           clearInterval(timerInterval.current!);
         }
-        
+
         return { ...prev, timeRemaining: newTimeRemaining };
       });
     }, 1000);
@@ -185,10 +185,10 @@ const SprintInterface: React.FC = () => {
 
       // Save first
       await sprintService.saveSprint(sprintData);
-      
+
       // Emit event to notify other components
       eventService.emit(EVENTS.SPRINT_COMPLETED);
-      
+
       // Then reset interface
       resetInterface();
     } catch (error) {
@@ -261,8 +261,8 @@ const SprintInterface: React.FC = () => {
         <div className="sprint-active">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div className="d-flex align-items-center gap-3">
-              <Button 
-                variant="outline-secondary" 
+              <Button
+                variant="outline-secondary"
                 size="sm"
                 onClick={toggleTimerDisplay}
               >
@@ -284,17 +284,17 @@ const SprintInterface: React.FC = () => {
               )}
             </div>
             <div>
-              <Button 
-                variant="outline-danger" 
-                size="sm" 
+              <Button
+                variant="outline-danger"
+                size="sm"
                 onClick={handleDiscard}
                 className="me-2"
               >
                 Discard
               </Button>
-              <Button 
-                variant="primary" 
-                size="sm" 
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={handleEndSprint}
               >
                 End Sprint
@@ -303,7 +303,7 @@ const SprintInterface: React.FC = () => {
           </div>
 
           <div className="progress mb-3" style={{ height: '4px' }}>
-            <div 
+            <div
               className={`progress-bar ${timer.timeRemaining / timer.totalDuration >= .5 ? 'bg-success' : timer.timeRemaining / timer.totalDuration >= .1 ? 'bg-warning' : 'bg-danger'}`}
               role="progressbar"
               style={{

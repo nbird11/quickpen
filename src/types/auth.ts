@@ -9,4 +9,4 @@ export interface AuthState {
   user: SerializedUser | null;
   loading: boolean;
   error: string | null;
-} 
+}

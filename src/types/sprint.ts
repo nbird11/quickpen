@@ -7,4 +7,5 @@ export interface Sprint {
   completedAt: Date;
   endedEarly: boolean;  // true if ended before timer ran out, false if completed full duration
   actualDuration?: number;  // actual time spent if ended early
+  tags?: string[];  // array of tags associated with this sprint
 }

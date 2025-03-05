@@ -19,10 +19,10 @@ const HighScoreWidget: React.FC = () => {
   // Use useCallback to memoize the loadHighScores function
   const loadHighScores = useCallback(async () => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Load best sprint for each category
       const categories: HighScoreCategory[] = ['wpm', 'words', 'duration'];
@@ -31,7 +31,7 @@ const HighScoreWidget: React.FC = () => {
         words: null,
         duration: null
       };
-      
+
       // Load all categories in parallel
       await Promise.all(
         categories.map(async (category) => {
@@ -39,11 +39,11 @@ const HighScoreWidget: React.FC = () => {
           results[category] = sprint;
         })
       );
-      
+
       // Load best streak
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const streakResult: StreakResult = await highScoreService.getBestStreak(user.uid, timezone);
-      
+
       setBestSprints(results);
       setBestStreak(streakResult.length);
     } catch (error) {
@@ -65,7 +65,7 @@ const HighScoreWidget: React.FC = () => {
     const unsubscribe = eventService.subscribe(EVENTS.SPRINT_COMPLETED, () => {
       loadHighScores();
     });
-    
+
     // Clean up subscription when component unmounts
     return () => unsubscribe();
   }, [loadHighScores]);
@@ -80,7 +80,7 @@ const HighScoreWidget: React.FC = () => {
   // Calculate WPM for display
   const calculateWPM = (sprint: Sprint | null): string => {
     if (!sprint) return '0';
-    
+
     const durationMinutes = (sprint.actualDuration || sprint.duration) / 60;
     const wpm = sprint.wordCount / durationMinutes;
     return wpm.toFixed(2);
@@ -167,4 +167,4 @@ const HighScoreWidget: React.FC = () => {
   );
 };
 
-export default HighScoreWidget; 
+export default HighScoreWidget;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Navbar as BsNavbar, Container, Button, Modal } from 'react-bootstrap';
+import { Navbar as BsNavbar, Container, Button, Nav, Modal } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import pen from '../assets/pen.svg';
 import { useAppSelector } from '../store/hooks';
 import { authService } from '../services/auth';
@@ -48,6 +49,17 @@ export function Navbar() {
             <img src={pen} alt="QuickPen" className="d-block" style={{ width: '35px', height: '35px' }} />
             <span className="fw-semibold text-dark text-opacity-80">QuickPen</span>
           </BsNavbar.Brand>
+
+          <BsNavbar.Toggle aria-controls="basic-navbar-nav" />
+          <BsNavbar.Collapse id="basic-navbar-nav">
+            {user && (
+              <Nav className="me-auto">
+                <Nav.Link as={Link} to="/app">Home</Nav.Link>
+                <Nav.Link as={Link} to="/history">History</Nav.Link>
+              </Nav>
+            )}
+          </BsNavbar.Collapse>
+
           <Button
             variant={user ? 'outline-primary' : 'primary'}
             onClick={() => user ? authService.signOut() : setShowAuth(true)}
@@ -57,8 +69,8 @@ export function Navbar() {
         </Container>
       </BsNavbar>
 
-      <Modal 
-        show={showAuth} 
+      <Modal
+        show={showAuth}
         onHide={() => setShowAuth(false)}
         centered
       >

@@ -20,10 +20,10 @@ const ProgressWidget: React.FC = () => {
   // Use useCallback to memoize the loadProgress function so it doesn't recreate on every render
   const loadProgress = useCallback(async () => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Use our Firestore service directly instead of Firebase Functions
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -48,7 +48,7 @@ const ProgressWidget: React.FC = () => {
     const unsubscribe = eventService.subscribe(EVENTS.SPRINT_COMPLETED, () => {
       loadProgress();
     });
-    
+
     // Clean up subscription when component unmounts
     return () => unsubscribe();
   }, [loadProgress]); // Only recreate when loadProgress changes, which depends on user and progressRange
@@ -67,7 +67,7 @@ const ProgressWidget: React.FC = () => {
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">Your Progress</h2>
-        <Form.Select 
+        <Form.Select
           value={progressRange}
           onChange={(e) => setProgressRange(e.target.value as ProgressRange)}
           style={{ width: 'auto' }}
@@ -143,4 +143,4 @@ const ProgressWidget: React.FC = () => {
   );
 };
 
-export default ProgressWidget; 
+export default ProgressWidget;
