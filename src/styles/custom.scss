@@ -17,6 +17,9 @@ $light: #F8F8F8; // Light background
 // $warning: default; (yellow/orange)
 // $danger: default; (red)
 
+// Import Sass color module
+@use "sass:color";
+
 // Customize theme colors - add various tones
 $theme-colors: (
   "primary": $primary,
@@ -25,10 +28,10 @@ $theme-colors: (
   "dark": $dark,
   "accent1": $accent1,
   "accent2": $accent2,
-  "primary-light": lighten($primary, 20%),
-  "primary-dark": darken($primary, 10%),
-  "secondary-light": lighten($secondary, 20%),
-  "secondary-dark": darken($secondary, 10%) // Success, info, warning, danger use Bootstrap defaults
+  "primary-light": color.adjust($primary, $lightness: 20%),
+  "primary-dark": color.adjust($primary, $lightness: -10%),
+  "secondary-light": color.adjust($secondary, $lightness: 20%),
+  "secondary-dark": color.adjust($secondary, $lightness: -10%) // Success, info, warning, danger use Bootstrap defaults
 );
 
 // Optional: Customize other Bootstrap variables
@@ -42,8 +45,8 @@ $font-family-base: $font-family-sans-serif;
 
 $headings-font-family: $font-family-sans-serif;
 
-// Import Bootstrap and its default variables
-@import "bootstrap/scss/bootstrap";
+// Import Bootstrap and its default variables - using @use instead of @import
+@use "bootstrap/scss/bootstrap" as bootstrap;
 
 // Additional custom styles
 
@@ -80,22 +83,20 @@ $headings-font-family: $font-family-sans-serif;
 
 // Customize button hover states
 .btn-primary {
-
   &:hover,
   &:focus,
   &:active {
-    background-color: darken($primary, 10%);
-    border-color: darken($primary, 12.5%);
+    background-color: color.adjust($primary, $lightness: -10%);
+    border-color: color.adjust($primary, $lightness: -12.5%);
   }
 }
 
 .btn-secondary {
-
   &:hover,
   &:focus,
   &:active {
-    background-color: darken($secondary, 10%);
-    border-color: darken($secondary, 12.5%);
+    background-color: color.adjust($secondary, $lightness: -10%);
+    border-color: color.adjust($secondary, $lightness: -12.5%);
   }
 }
 
@@ -109,8 +110,8 @@ $headings-font-family: $font-family-sans-serif;
   &:focus,
   &:active {
     color: white;
-    background-color: darken($accent1, 10%);
-    border-color: darken($accent1, 12.5%);
+    background-color: color.adjust($accent1, $lightness: -10%);
+    border-color: color.adjust($accent1, $lightness: -12.5%);
   }
 }
 
@@ -123,8 +124,8 @@ $headings-font-family: $font-family-sans-serif;
   &:focus,
   &:active {
     color: $dark;
-    background-color: darken($accent2, 10%);
-    border-color: darken($accent2, 12.5%);
+    background-color: color.adjust($accent2, $lightness: -10%);
+    border-color: color.adjust($accent2, $lightness: -12.5%);
   }
 }
 
@@ -133,7 +134,7 @@ $headings-font-family: $font-family-sans-serif;
   background-color: $primary !important;
 
   &:hover {
-    background-color: darken($primary, 10%) !important;
+    background-color: color.adjust($primary, $lightness: -10%) !important;
   }
 }
 
@@ -141,7 +142,7 @@ $headings-font-family: $font-family-sans-serif;
   background-color: $secondary !important;
 
   &:hover {
-    background-color: darken($secondary, 10%) !important;
+    background-color: color.adjust($secondary, $lightness: -10%) !important;
   }
 }
 
@@ -156,7 +157,7 @@ $headings-font-family: $font-family-sans-serif;
   }
 
   .badge.bg-accent1 {
-    background-color: lighten($accent1, 10%) !important;
+    background-color: color.adjust($accent1, $lightness: 10%) !important;
   }
 
   .badge.bg-accent2 {
