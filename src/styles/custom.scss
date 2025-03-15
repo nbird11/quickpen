@@ -1,7 +1,8 @@
 // Custom Bootstrap Theme for QuickPen
 // Based on colors from proto/static/styles/global.css
 
-// Override default Bootstrap variables before the import
+// Import Sass color module
+@use "sass:color";
 
 // QuickPen color scheme
 $primary: #3D6541; // Green from prototype
@@ -16,9 +17,6 @@ $light: #F8F8F8; // Light background
 // $info: default; (blue)
 // $warning: default; (yellow/orange)
 // $danger: default; (red)
-
-// Import Sass color module
-@use "sass:color";
 
 // Customize theme colors - add various tones
 $theme-colors: (
@@ -40,13 +38,22 @@ $border-radius-lg: 0.5rem;
 $border-radius-sm: 0.2rem;
 
 $font-family-sans-serif: 'Helvetica', sans-serif;
-$font-family-serif: 'Merriweather', serif;
 $font-family-base: $font-family-sans-serif;
 
 $headings-font-family: $font-family-sans-serif;
 
-// Import Bootstrap and its default variables - using @use instead of @import
-@use "bootstrap/scss/bootstrap" as bootstrap;
+// Import Bootstrap with custom variables - using @use with 'with' to pass variables
+@use "bootstrap/scss/bootstrap" with (
+  $primary: $primary,
+  $secondary: $secondary,
+  $border-radius: $border-radius,
+  $border-radius-lg: $border-radius-lg,
+  $border-radius-sm: $border-radius-sm,
+  $font-family-sans-serif: $font-family-sans-serif,
+  $font-family-base: $font-family-base,
+  $headings-font-family: $headings-font-family,
+  $theme-colors: $theme-colors
+);
 
 // Additional custom styles
 
