@@ -346,7 +346,7 @@ const SprintHistoryContainer: React.FC = () => {
                           placeholder="Add a tag..."
                           value={newTag}
                           onChange={(e) => setNewTag(e.target.value)}
-                          onKeyPress={handleTagKeyPress}
+                          onKeyDown={handleTagKeyPress}
                           size="sm"
                         />
                         <Button
