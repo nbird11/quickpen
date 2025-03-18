@@ -45,19 +45,22 @@ export function Navbar() {
     <>
       <BsNavbar expand="lg" className="bg-light shadow-sm">
         <Container>
-          <BsNavbar.Brand href="/" className="d-flex align-items-center gap-3 text-primary">
+          <BsNavbar.Brand href="/home" className="d-flex align-items-center gap-3 text-primary">
             <img src={pen} alt="QuickPen" className="d-block" style={{ width: '35px', height: '35px' }} />
             <span className="fw-semibold text-dark text-opacity-80">QuickPen</span>
           </BsNavbar.Brand>
 
           <BsNavbar.Toggle aria-controls="basic-navbar-nav" />
           <BsNavbar.Collapse id="basic-navbar-nav">
-            {user && (
-              <Nav className="me-auto">
-                <Nav.Link as={Link} to="/app">Home</Nav.Link>
-                <Nav.Link as={Link} to="/history">History</Nav.Link>
-              </Nav>
-            )}
+            <Nav className="me-auto">
+              <Nav.Link as={Link} to="/home">Home</Nav.Link>
+              {user && (
+                <>
+                  <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
+                  <Nav.Link as={Link} to="/history">History</Nav.Link>
+                </>
+              )}
+            </Nav>
           </BsNavbar.Collapse>
 
           <Button

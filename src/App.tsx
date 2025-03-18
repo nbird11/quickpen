@@ -5,7 +5,7 @@ import { Navbar } from './components/Navbar';
 
 // Lazy load route components
 const Home = lazy(() => import('./pages/Home'));
-const QuickPen = lazy(() => import('./pages/QuickPen'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const History = lazy(() => import('./pages/History'));
 
 const App = () => {
@@ -42,14 +42,21 @@ const App = () => {
         </div>
       }>
         <Routes>
+          {/* Root route - redirects logged-in users to dashboard by default */}
           <Route
             path="/"
-            element={user ? <Navigate to="/app" replace /> : <Home />}
+            element={user ? <Navigate to="/dashboard" replace /> : <Home />}
           />
           <Route
-            path="/app"
-            element={user ? <QuickPen /> : <Navigate to="/" replace />}
+            path="/home"
+            element={<Home />}
           />
+          {/* Dashboard - protected route */}
+          <Route
+            path="/dashboard"
+            element={user ? <Dashboard /> : <Navigate to="/" replace />}
+          />
+          {/* History - protected route */}
           <Route
             path="/history"
             element={user ? <History /> : <Navigate to="/" replace />}
