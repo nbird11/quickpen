@@ -32,9 +32,12 @@ const SprintHistoryContainer: React.FC = () => {
         console.log('[SprintHistory] Auto-selecting first sprint');
         setSelectedSprint(sprintData[0]);
       } else if (selectedSprint) {
-        // Check if the selected sprint still exists in the updated list
-        const stillExists = sprintData.some(sprint => sprint.id === selectedSprint.id);
-        if (!stillExists && sprintData.length > 0) {
+        // Update the selected sprint if it still exists in the list
+        const updatedSelectedSprint = sprintData.find(sprint => sprint.id === selectedSprint.id);
+        if (updatedSelectedSprint) {
+          console.log('[SprintHistory] Updating selected sprint with latest data');
+          setSelectedSprint(updatedSelectedSprint);
+        } else if (sprintData.length > 0) {
           console.log('[SprintHistory] Selected sprint no longer exists, selecting first sprint');
           setSelectedSprint(sprintData[0]);
         }
@@ -44,9 +47,8 @@ const SprintHistoryContainer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, selectedSprint]); // selectedSprint is needed here to check if it exists
+  }, [user]); // Removed selectedSprint from dependencies
 
-  // Split the effect into two separate effects
   // 1. Effect to load sprints initially and on user change
   useEffect(() => {
     console.log('[SprintHistory] Initial load effect triggered');
@@ -54,7 +56,7 @@ const SprintHistoryContainer: React.FC = () => {
 
     // DO NOT add sprint completed event listener here - it will cause rerenders
 
-  }, [user, loadSprints]); // loadSprints depends on selectedSprint, so this effect runs when selected sprint changes
+  }, [user]); // Only depend on user, not loadSprints
 
   // 2. Effect to handle sprint completion events - MUST be separate
   useEffect(() => {
@@ -70,7 +72,7 @@ const SprintHistoryContainer: React.FC = () => {
       console.log('[SprintHistory] Cleaning up event subscription');
       unsubscribe();
     };
-  }, [loadSprints]); // This will run every time loadSprints changes, but that's OK for event subscriptions
+  }, [user]); // Only depend on user and loadSprints function
 
   // 3. Effect to handle keyboard navigation - MUST be separate
   useEffect(() => {
