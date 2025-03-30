@@ -184,7 +184,7 @@ const SprintHistoryContainer: React.FC = () => {
     <Container fluid>
       <Row className="g-4">
         <Col lg={4} md={5}>
-          <Card className="shadow-sm h-100">
+          <Card className="shadow-sm h-100 position-relative">
             <Card.Header className="bg-light">
               <h5 className="mb-0">Sprint History</h5>
             </Card.Header>
@@ -195,64 +195,136 @@ const SprintHistoryContainer: React.FC = () => {
                 </Spinner>
               </div>
             ) : (
-              <div className="list-container rounded-1" style={{ overflow: "auto", position: "absolute", top: "41px", bottom: "1px", left: "0", right: "0" }}>
-                <ListGroup variant="flush" className="border-0">
-                  {sprints.length === 0 ? (
-                    <ListGroup.Item className="text-center py-5 text-muted">
-                      No sprints found. Complete your first sprint to see it here!
-                    </ListGroup.Item>
-                  ) : (
-                    sprints.map(sprint => {
-                      const isSelected = selectedSprint?.id === sprint.id;
-                      return (
-                        <ListGroup.Item
-                          key={sprint.id}
-                          action
-                          active={isSelected}
-                          onClick={() => handleSelectSprint(sprint)}
-                          className="border-bottom"
-                        >
-                          <div className="d-flex justify-content-between align-items-start">
-                            <div>
-                              <div className="mb-1">
-                                <strong>{sprint.wordCount} words</strong>
-                                {sprint.tags && sprint.tags.length > 0 && (
-                                  <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
-                                    {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
+              <>
+                {/* Desktop view (md and up) - absolute positioning for scrolling within fixed container */}
+                <div 
+                  className="list-container position-absolute rounded-1 d-none d-md-block" 
+                  style={{ 
+                    overflow: "auto", 
+                    top: "41px", 
+                    bottom: "1px", 
+                    left: "0", 
+                    right: "0"
+                  }}
+                >
+                  <ListGroup variant="flush" className="border-0">
+                    {sprints.length === 0 ? (
+                      <ListGroup.Item className="text-center py-5 text-muted">
+                        No sprints found. Complete your first sprint to see it here!
+                      </ListGroup.Item>
+                    ) : (
+                      sprints.map(sprint => {
+                        const isSelected = selectedSprint?.id === sprint.id;
+                        return (
+                          <ListGroup.Item
+                            key={sprint.id}
+                            action
+                            active={isSelected}
+                            onClick={() => handleSelectSprint(sprint)}
+                            className="border-bottom"
+                          >
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <div className="mb-1">
+                                  <strong>{sprint.wordCount} words</strong>
+                                  {sprint.tags && sprint.tags.length > 0 && (
+                                    <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
+                                      {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-muted small">
+                                  {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
+                                </div>
+                              </div>
+                              <div className="text-end">
+                                <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
+                                <div className="text-muted small">
+                                  {sprint.endedEarly ? 'Ended early' : 'Completed'}
+                                </div>
+                              </div>
+                            </div>
+                            {sprint.tags && sprint.tags.length > 0 && (
+                              <div className="mt-2">
+                                {sprint.tags.map(tag => (
+                                  <Badge
+                                    key={tag}
+                                    bg="accent1"
+                                    className="me-1 mb-1"
+                                    style={{ fontSize: '0.7rem' }}
+                                  >
+                                    {tag}
                                   </Badge>
-                                )}
+                                ))}
                               </div>
-                              <div className="text-muted small">
-                                {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
+                            )}
+                          </ListGroup.Item>
+                        );
+                      })
+                    )}
+                  </ListGroup>
+                </div>
+
+                {/* Mobile view (below md) - regular positioning to fit in the flow */}
+                <div className="d-md-none">
+                  <ListGroup variant="flush" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    {sprints.length === 0 ? (
+                      <ListGroup.Item className="text-center py-5 text-muted">
+                        No sprints found. Complete your first sprint to see it here!
+                      </ListGroup.Item>
+                    ) : (
+                      sprints.map(sprint => {
+                        const isSelected = selectedSprint?.id === sprint.id;
+                        return (
+                          <ListGroup.Item
+                            key={sprint.id}
+                            action
+                            active={isSelected}
+                            onClick={() => handleSelectSprint(sprint)}
+                            className="border-bottom"
+                          >
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <div className="mb-1">
+                                  <strong>{sprint.wordCount} words</strong>
+                                  {sprint.tags && sprint.tags.length > 0 && (
+                                    <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
+                                      {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-muted small">
+                                  {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
+                                </div>
+                              </div>
+                              <div className="text-end">
+                                <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
+                                <div className="text-muted small">
+                                  {sprint.endedEarly ? 'Ended early' : 'Completed'}
+                                </div>
                               </div>
                             </div>
-                            <div className="text-end">
-                              <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
-                              <div className="text-muted small">
-                                {sprint.endedEarly ? 'Ended early' : 'Completed'}
+                            {sprint.tags && sprint.tags.length > 0 && (
+                              <div className="mt-2">
+                                {sprint.tags.map(tag => (
+                                  <Badge
+                                    key={tag}
+                                    bg="accent1"
+                                    className="me-1 mb-1"
+                                    style={{ fontSize: '0.7rem' }}
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))}
                               </div>
-                            </div>
-                          </div>
-                          {sprint.tags && sprint.tags.length > 0 && (
-                            <div className="mt-2">
-                              {sprint.tags.map(tag => (
-                                <Badge
-                                  key={tag}
-                                  bg="accent1"
-                                  className="me-1 mb-1"
-                                  style={{ fontSize: '0.7rem' }}
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </ListGroup.Item>
-                      );
-                    })
-                  )}
-                </ListGroup>
-              </div>
+                            )}
+                          </ListGroup.Item>
+                        );
+                      })
+                    )}
+                  </ListGroup>
+                </div>
+              </>
             )}
           </Card>
         </Col>
