@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Form, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { sprintService } from '../services/sprint';
 import { Sprint } from '../types/sprint';
@@ -21,6 +22,7 @@ interface SprintState {
 
 const SprintInterface: React.FC = () => {
   const { user } = useAppSelector(state => state.auth);
+  const navigate = useNavigate();
   // Timer state
   const [timer, setTimer] = useState<TimerState>({
     timeRemaining: 0,
@@ -189,11 +191,23 @@ const SprintInterface: React.FC = () => {
       // Emit event to notify other components
       eventService.emit(EVENTS.SPRINT_COMPLETED);
 
-      // Then reset interface
-      // resetInterface();
+      // Reset state before navigating to avoid potential memory issues
+      setSprint(prev => ({
+        ...prev,
+        isActive: false
+      }));
 
-      // route to sprint in history
-      window.location.href = '/history';
+      // Add a small delay to ensure all async operations are complete
+      // This helps with the navigation issues in production
+      setTimeout(() => {
+        try {
+          navigate('/history', { replace: true });
+        } catch (navError) {
+          console.error('Navigation error:', navError);
+          // Fallback to traditional navigation if React Router fails
+          window.location.href = '/history';
+        }
+      }, 100);
     } catch (error) {
       console.error('Error saving sprint:', error);
       alert('Failed to save your sprint. Please try again.');
