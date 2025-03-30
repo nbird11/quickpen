@@ -190,7 +190,10 @@ const SprintInterface: React.FC = () => {
       eventService.emit(EVENTS.SPRINT_COMPLETED);
 
       // Then reset interface
-      resetInterface();
+      // resetInterface();
+
+      // route to sprint in history
+      window.location.href = '/history';
     } catch (error) {
       console.error('Error saving sprint:', error);
       alert('Failed to save your sprint. Please try again.');
