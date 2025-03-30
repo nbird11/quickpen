@@ -7,7 +7,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { eventService, EVENTS } from '../services/events';
 
 const SprintHistoryContainer: React.FC = () => {
-  console.log('[SprintHistory] Component rendering');
   const { user } = useAuth();
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
@@ -21,29 +20,24 @@ const SprintHistoryContainer: React.FC = () => {
 
     try {
       setLoading(true);
-      console.log('[SprintHistory] Fetching sprints from service...');
       const sprintData = await historyService.getSprints(user.uid);
-      console.log(`[SprintHistory] Got ${sprintData.length} sprints from service`);
 
       setSprints(sprintData);
 
       // Select the first sprint if available and none is currently selected
       if (sprintData.length > 0 && !selectedSprint) {
-        console.log('[SprintHistory] Auto-selecting first sprint');
         setSelectedSprint(sprintData[0]);
       } else if (selectedSprint) {
         // Update the selected sprint if it still exists in the list
         const updatedSelectedSprint = sprintData.find(sprint => sprint.id === selectedSprint.id);
         if (updatedSelectedSprint) {
-          console.log('[SprintHistory] Updating selected sprint with latest data');
           setSelectedSprint(updatedSelectedSprint);
         } else if (sprintData.length > 0) {
-          console.log('[SprintHistory] Selected sprint no longer exists, selecting first sprint');
           setSelectedSprint(sprintData[0]);
         }
       }
     } catch (error) {
-      console.error('[SprintHistory] Error loading sprints:', error);
+      console.error('Error loading sprints:', error);
     } finally {
       setLoading(false);
     }
@@ -51,7 +45,6 @@ const SprintHistoryContainer: React.FC = () => {
 
   // 1. Effect to load sprints initially and on user change
   useEffect(() => {
-    console.log('[SprintHistory] Initial load effect triggered');
     loadSprints();
 
     // DO NOT add sprint completed event listener here - it will cause rerenders
@@ -60,31 +53,24 @@ const SprintHistoryContainer: React.FC = () => {
 
   // 2. Effect to handle sprint completion events - MUST be separate
   useEffect(() => {
-    console.log('[SprintHistory] Event subscription effect triggered');
-
     // Subscribe to sprint completed event to refresh the list
     const unsubscribe = eventService.subscribe(EVENTS.SPRINT_COMPLETED, () => {
-      console.log('[SprintHistory] Sprint completed event received, refreshing history');
       loadSprints();
     });
 
     return () => {
-      console.log('[SprintHistory] Cleaning up event subscription');
       unsubscribe();
     };
   }, [user]); // Only depend on user and loadSprints function
 
   // 3. Effect to handle keyboard navigation - MUST be separate
   useEffect(() => {
-    console.log('[SprintHistory] Keyboard navigation effect triggered');
-
     // Add keyboard navigation
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't handle keys if inside the tag input
       if (e.target instanceof HTMLInputElement) return;
 
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        console.log(`[SprintHistory] Arrow key pressed: ${e.key}`);
         e.preventDefault();
 
         if (sprints.length === 0 || !selectedSprint) return;
@@ -101,7 +87,6 @@ const SprintHistoryContainer: React.FC = () => {
         }
 
         if (newIndex !== currentIndex) {
-          console.log(`[SprintHistory] Moving selection from index ${currentIndex} to ${newIndex}`);
           setSelectedSprint(sprints[newIndex]);
           // Focus back on the content viewer
           if (contentViewerRef.current) {
@@ -114,14 +99,12 @@ const SprintHistoryContainer: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      console.log('[SprintHistory] Cleaning up keyboard event listener');
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [sprints, selectedSprint]); // This depends on sprints and selectedSprint, but won't cause an infinite loop
 
   // Memoize the handleSelectSprint function to prevent unnecessary recreations
   const handleSelectSprint = useCallback((sprint: Sprint) => {
-    console.log('[SprintHistory] Manual sprint selection:', sprint.id);
     setSelectedSprint(sprint);
   }, []);
 
@@ -137,7 +120,6 @@ const SprintHistoryContainer: React.FC = () => {
     if (!selectedSprint?.id || !newTag.trim()) return;
 
     try {
-      console.log(`[SprintHistory] Adding tag "${newTag}" to sprint ${selectedSprint.id}`);
       await historyService.addTag(selectedSprint.id, newTag.trim());
 
       // Update the selected sprint with the new tag
@@ -145,7 +127,6 @@ const SprintHistoryContainer: React.FC = () => {
         if (!prev) return null;
 
         const currentTags = prev.tags || [];
-        console.log(`[SprintHistory] Updated tags:`, [...currentTags, newTag.trim()]);
         return {
           ...prev,
           tags: [...currentTags, newTag.trim()]
@@ -158,7 +139,7 @@ const SprintHistoryContainer: React.FC = () => {
       // Refresh the sprints list to update the selected sprint
       loadSprints();
     } catch (error) {
-      console.error('[SprintHistory] Error adding tag:', error);
+      console.error('Error adding tag:', error);
     }
   };
 
@@ -167,7 +148,6 @@ const SprintHistoryContainer: React.FC = () => {
     if (!selectedSprint?.id) return;
 
     try {
-      console.log(`[SprintHistory] Removing tag "${tag}" from sprint ${selectedSprint.id}`);
       await historyService.removeTag(selectedSprint.id, tag);
 
       // Update the selected sprint without the removed tag
@@ -175,7 +155,6 @@ const SprintHistoryContainer: React.FC = () => {
         if (!prev) return null;
 
         const updatedTags = prev.tags?.filter(t => t !== tag) || [];
-        console.log(`[SprintHistory] Updated tags after removal:`, updatedTags);
         return {
           ...prev,
           tags: updatedTags
@@ -185,29 +164,21 @@ const SprintHistoryContainer: React.FC = () => {
       // Refresh the sprints list to update the selected sprint
       loadSprints();
     } catch (error) {
-      console.error('[SprintHistory] Error removing tag:', error);
+      console.error('Error removing tag:', error);
     }
   };
 
   // Handle key press in tag input (submit on Enter)
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      console.log('[SprintHistory] Enter key pressed in tag input');
       e.preventDefault();
       handleAddTag();
     }
   };
 
   if (!user) {
-    console.log('[SprintHistory] No user found, showing login message');
     return <p className="text-center">Please log in to view your sprint history.</p>;
   }
-
-  console.log('[SprintHistory] Rendering with:', {
-    sprintsCount: sprints.length,
-    selectedId: selectedSprint?.id,
-    isLoading: loading
-  });
 
   return (
     <Container fluid>
@@ -232,7 +203,6 @@ const SprintHistoryContainer: React.FC = () => {
                 ) : (
                   sprints.map(sprint => {
                     const isSelected = selectedSprint?.id === sprint.id;
-                    console.log(`[SprintHistory] Rendering sprint ${sprint.id}, selected: ${isSelected}`);
                     return (
                       <ListGroup.Item
                         key={sprint.id}

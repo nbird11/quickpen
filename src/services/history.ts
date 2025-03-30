@@ -12,12 +12,6 @@ export const historyService = {
    * @returns Array of Sprint objects
    */
   getSprints: async (userId: string, limit?: number): Promise<Sprint[]> => {
-    console.log(
-      `[HistoryService] getSprints called for user ${userId}, limit: ${
-        limit || "none"
-      }`
-    );
-
     try {
       // Query sprints for this user, ordered by completion date (newest first)
       let query = db
@@ -31,9 +25,7 @@ export const historyService = {
         query = query.limit(limit);
       }
 
-      console.log(`[HistoryService] Executing Firestore query for sprints`);
       const snapshot = await query.get();
-      console.log(`[HistoryService] Query returned ${snapshot.size} documents`);
 
       // Convert to Sprint objects
       const sprints = snapshot.docs.map((doc) => {
@@ -47,18 +39,9 @@ export const historyService = {
         } as Sprint;
       });
 
-      console.log(
-        `[HistoryService] Processed ${sprints.length} sprints:`,
-        sprints.map((s) => ({
-          id: s.id,
-          wordCount: s.wordCount,
-          timestamp: s.completedAt.toISOString(),
-        }))
-      );
-
       return sprints;
     } catch (error) {
-      console.error("[HistoryService] Error getting sprints:", error);
+      console.error("Error getting sprints:", error);
       throw error;
     }
   },
@@ -70,13 +53,10 @@ export const historyService = {
    * @returns The Sprint object or null if not found
    */
   getSprint: async (sprintId: string): Promise<Sprint | null> => {
-    console.log(`[HistoryService] getSprint called for sprint ${sprintId}`);
-
     try {
       const doc = await db.collection("sprints").doc(sprintId).get();
 
       if (!doc.exists) {
-        console.log(`[HistoryService] Sprint ${sprintId} not found`);
         return null;
       }
 
@@ -89,18 +69,9 @@ export const historyService = {
         ).toDate(),
       } as Sprint;
 
-      console.log(`[HistoryService] Retrieved sprint ${sprintId}:`, {
-        wordCount: sprint.wordCount,
-        timestamp: sprint.completedAt.toISOString(),
-        tags: sprint.tags,
-      });
-
       return sprint;
     } catch (error) {
-      console.error(
-        `[HistoryService] Error getting sprint ${sprintId}:`,
-        error
-      );
+      console.error(`Error getting sprint ${sprintId}:`, error);
       throw error;
     }
   },
@@ -113,57 +84,29 @@ export const historyService = {
    * @returns Promise that resolves when the tag is added
    */
   addTag: async (sprintId: string, tag: string): Promise<void> => {
-    console.log(
-      `[HistoryService] addTag called for sprint ${sprintId}, tag: "${tag}"`
-    );
-
     try {
       const sprintRef = db.collection("sprints").doc(sprintId);
 
       // Get current tags
-      console.log(
-        `[HistoryService] Fetching current tags for sprint ${sprintId}`
-      );
       const doc = await sprintRef.get();
       if (!doc.exists) {
-        console.error(
-          `[HistoryService] Sprint ${sprintId} not found when adding tag`
-        );
         throw new Error("Sprint not found");
       }
 
       const currentTags = doc.data()?.tags || [];
-      console.log(
-        `[HistoryService] Current tags for sprint ${sprintId}:`,
-        currentTags
-      );
 
       // Check if tag already exists
       if (currentTags.includes(tag)) {
-        console.log(
-          `[HistoryService] Tag "${tag}" already exists on sprint ${sprintId}, skipping`
-        );
         return; // Tag already exists, no need to add
       }
 
       // Add the new tag
       const newTags = [...currentTags, tag];
-      console.log(
-        `[HistoryService] Updating sprint ${sprintId} with new tags:`,
-        newTags
-      );
       await sprintRef.update({
         tags: newTags,
       });
-
-      console.log(
-        `[HistoryService] Successfully added tag "${tag}" to sprint ${sprintId}`
-      );
     } catch (error) {
-      console.error(
-        `[HistoryService] Error adding tag "${tag}" to sprint ${sprintId}:`,
-        error
-      );
+      console.error(`Error adding tag to sprint:`, error);
       throw error;
     }
   },
@@ -176,49 +119,24 @@ export const historyService = {
    * @returns Promise that resolves when the tag is removed
    */
   removeTag: async (sprintId: string, tag: string): Promise<void> => {
-    console.log(
-      `[HistoryService] removeTag called for sprint ${sprintId}, tag: "${tag}"`
-    );
-
     try {
       const sprintRef = db.collection("sprints").doc(sprintId);
 
       // Get current tags
-      console.log(
-        `[HistoryService] Fetching current tags for sprint ${sprintId}`
-      );
       const doc = await sprintRef.get();
       if (!doc.exists) {
-        console.error(
-          `[HistoryService] Sprint ${sprintId} not found when removing tag`
-        );
         throw new Error("Sprint not found");
       }
 
       const currentTags = doc.data()?.tags || [];
-      console.log(
-        `[HistoryService] Current tags for sprint ${sprintId}:`,
-        currentTags
-      );
 
       // Remove the tag
       const newTags = currentTags.filter((t: string) => t !== tag);
-      console.log(
-        `[HistoryService] Updating sprint ${sprintId} with tags after removal:`,
-        newTags
-      );
       await sprintRef.update({
         tags: newTags,
       });
-
-      console.log(
-        `[HistoryService] Successfully removed tag "${tag}" from sprint ${sprintId}`
-      );
     } catch (error) {
-      console.error(
-        `[HistoryService] Error removing tag "${tag}" from sprint ${sprintId}:`,
-        error
-      );
+      console.error(`Error removing tag from sprint:`, error);
       throw error;
     }
   },
