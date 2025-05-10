@@ -293,7 +293,7 @@ const SprintInterface: React.FC = () => {
                     variant="link"
                     size="sm"
                     onClick={togglePause}
-                    className="ms-2"
+                    className="ms-2 text-decoration-none border"
                   >
                     {timer.isPaused ? '▶' : '⏸'}
                   </Button>
