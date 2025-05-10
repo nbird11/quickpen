@@ -168,23 +168,29 @@ const SprintHistoryContainer: React.FC = () => {
   // Handle adding a tag
   const handleAddTag = async () => {
     if (!selectedSprint?.id || !newTag.trim()) return;
+    const currentSelectedSprintId = selectedSprint.id;
+    const tagToAdd = newTag.trim();
 
     try {
-      await historyService.addTag(selectedSprint.id, newTag.trim());
-
-      // Update the selected sprint with the new tag AND the main sprints list
-      const newTagTrimmed = newTag.trim();
-      setSprints(prevSprints => prevSprints.map(s => 
-        s.id === selectedSprint.id ? { ...s, tags: [...(s.tags || []), newTagTrimmed] } : s
-      ));
-      // Selected sprint will update via the sprints state change and subsequent filteredSprints memoization
-      // and the useEffect that watches filteredSprints
-
-      // Clear the input
+      await historyService.addTag(currentSelectedSprintId, tagToAdd);
+      
+      setSprints(prevSprints =>
+        prevSprints.map(s => {
+          if (s.id === currentSelectedSprintId) {
+            const updatedSprint = {
+              ...s,
+              tags: [...(s.tags || []), tagToAdd],
+            };
+            // If the sprint being updated is the currently selected one, update selectedSprint state
+            if (selectedSprint && selectedSprint.id === currentSelectedSprintId) {
+              setSelectedSprint(updatedSprint);
+            }
+            return updatedSprint;
+          }
+          return s;
+        })
+      );
       setNewTag('');
-
-      // No need to call loadSprints() here as we updated local state for immediate feedback
-      // loadSprints(); // This might still be desired for full consistency with backend or if other users modify tags
     } catch (error) {
       console.error('Error adding tag:', error);
     }
@@ -193,18 +199,27 @@ const SprintHistoryContainer: React.FC = () => {
   // Handle removing a tag
   const handleRemoveTag = async (tagToRemove: string) => {
     if (!selectedSprint?.id) return;
+    const currentSelectedSprintId = selectedSprint.id;
 
     try {
-      await historyService.removeTag(selectedSprint.id, tagToRemove);
+      await historyService.removeTag(currentSelectedSprintId, tagToRemove);
 
-      // Update the selected sprint without the removed tag AND the main sprints list
-      setSprints(prevSprints => prevSprints.map(s => 
-        s.id === selectedSprint.id ? { ...s, tags: s.tags?.filter(t => t !== tagToRemove) || [] } : s
-      ));
-      // Selected sprint will update as above
-
-      // No need to call loadSprints() for immediate feedback
-      // loadSprints();
+      setSprints(prevSprints =>
+        prevSprints.map(s => {
+          if (s.id === currentSelectedSprintId) {
+            const updatedSprint = {
+              ...s,
+              tags: s.tags?.filter(t => t !== tagToRemove) || [],
+            };
+            // If the sprint being updated is the currently selected one, update selectedSprint state
+            if (selectedSprint && selectedSprint.id === currentSelectedSprintId) {
+              setSelectedSprint(updatedSprint);
+            }
+            return updatedSprint;
+          }
+          return s;
+        })
+      );
     } catch (error) {
       console.error('Error removing tag:', error);
     }
