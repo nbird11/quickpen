@@ -18,6 +18,7 @@ interface SprintState {
   isActive: boolean;
   content: string;
   wordCount: number;
+  currentWPM: number;
 }
 
 const SprintInterface: React.FC = () => {
@@ -35,7 +36,8 @@ const SprintInterface: React.FC = () => {
   const [sprint, setSprint] = useState<SprintState>({
     isActive: false,
     content: '',
-    wordCount: 0
+    wordCount: 0,
+    currentWPM: 0
   });
 
   // Duration input state
@@ -92,7 +94,8 @@ const SprintInterface: React.FC = () => {
       ...prev,
       isActive: true,
       content: '',
-      wordCount: 0
+      wordCount: 0,
+      currentWPM: 0
     }));
 
     startTimer();
@@ -130,6 +133,52 @@ const SprintInterface: React.FC = () => {
     }
   }, [timer.timeRemaining, sprint.isActive]);
 
+  // Effect for calculating Words Per Minute (WPM)
+  useEffect(() => {
+    let newCalculatedWpm: number;
+
+    if (!sprint.isActive) {
+      newCalculatedWpm = 0;
+    } else {
+      const elapsedSeconds = timer.totalDuration - timer.timeRemaining;
+      // Configurable minimum seconds before WPM calculation starts
+      const WPM_CALCULATION_MIN_SECONDS = 5;
+      // How often to update WPM when sprint is active and not paused
+      const WPM_UPDATE_INTERVAL_SECONDS = 5;
+
+      if (elapsedSeconds < WPM_CALCULATION_MIN_SECONDS) {
+        newCalculatedWpm = 0;
+      } else {
+        // Calculate WPM if paused or if it's an update interval while running
+        const shouldCalculateThisCycle =
+          timer.isPaused || (!timer.isPaused && elapsedSeconds % WPM_UPDATE_INTERVAL_SECONDS === 0);
+
+        if (shouldCalculateThisCycle) {
+          const elapsedMinutes = elapsedSeconds / 60;
+          // elapsedSeconds >= WPM_CALCULATION_MIN_SECONDS (and > 0) ensures elapsedMinutes > 0,
+          // preventing division by zero for wordCount / elapsedMinutes.
+          newCalculatedWpm = Math.round(sprint.wordCount / elapsedMinutes);
+        } else {
+          // If not a calculation cycle (e.g., running but not an interval tick),
+          // WPM should retain its current value.
+          newCalculatedWpm = sprint.currentWPM;
+        }
+      }
+    }
+
+    // Only update state if the calculated WPM is different from the current WPM
+    if (newCalculatedWpm !== sprint.currentWPM) {
+      setSprint(prev => ({ ...prev, currentWPM: newCalculatedWpm }));
+    }
+  }, [
+    sprint.isActive,
+    sprint.wordCount,
+    sprint.currentWPM, // Dependency ensures we compare against the latest WPM before setting
+    timer.totalDuration,
+    timer.timeRemaining,
+    timer.isPaused,
+  ]);
+
   const togglePause = () => {
     setTimer(prev => ({ ...prev, isPaused: !prev.isPaused }));
   };
@@ -154,7 +203,8 @@ const SprintInterface: React.FC = () => {
       ...prev,
       isActive: false,
       content: '',
-      wordCount: 0
+      wordCount: 0,
+      currentWPM: 0
     }));
 
     setDurationInput('');
@@ -347,8 +397,9 @@ const SprintInterface: React.FC = () => {
 
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <strong>Words: </strong>
-              <span className="font-monospace">{sprint.wordCount}</span>
+              <Card.Text className="mb-0">
+                Word Count: {sprint.wordCount} | WPM: {sprint.currentWPM}
+              </Card.Text>
             </div>
             {timer.timeRemaining > 0 && !timer.isPaused && (
               <div className="text-muted">
