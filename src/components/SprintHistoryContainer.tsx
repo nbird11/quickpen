@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { historyService } from '../services/history';
 import { Sprint } from '../types/sprint';
+import { AppliedFilters } from '../types/filters';
+import FilterPanel from './FilterPanel';
 import { Container, Row, Col, Card, ListGroup, Form, Button, Badge, Spinner } from 'react-bootstrap';
 import { formatDistanceToNow } from 'date-fns';
 import { eventService, EVENTS } from '../services/events';
@@ -12,7 +14,13 @@ const SprintHistoryContainer: React.FC = () => {
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [newTag, setNewTag] = useState('');
   const [loading, setLoading] = useState(true);
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [] });
   const contentViewerRef = useRef<HTMLTextAreaElement>(null);
+
+  // Refs for height calculation
+  const headerRef = useRef<HTMLDivElement>(null);
+  const filterPanelWrapperRef = useRef<HTMLDivElement>(null);
+  const [listAreaTop, setListAreaTop] = useState(120); // Initial reasonable default
 
   // Function to load sprint history - this should NOT depend on selectedSprint
   const loadSprints = useCallback(async () => {
@@ -61,7 +69,17 @@ const SprintHistoryContainer: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [user]); // Only depend on user and loadSprints function
+  }, [user, loadSprints]); // Ensure loadSprints is stable or correctly memoized if added here
+
+  // Memoized filtered sprints based on appliedFilters
+  const filteredSprints = useMemo(() => {
+    if (appliedFilters.tags.length === 0) {
+      return sprints; // No tag filter applied, return all sprints
+    }
+    return sprints.filter(sprint =>
+      appliedFilters.tags.every(filterTag => sprint.tags?.includes(filterTag))
+    );
+  }, [sprints, appliedFilters]);
 
   // 3. Effect to handle keyboard navigation - MUST be separate
   useEffect(() => {
@@ -73,21 +91,21 @@ const SprintHistoryContainer: React.FC = () => {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
 
-        if (sprints.length === 0 || !selectedSprint) return;
+        if (filteredSprints.length === 0 || !selectedSprint) return;
 
-        const currentIndex = sprints.findIndex(sprint => sprint.id === selectedSprint.id);
+        const currentIndex = filteredSprints.findIndex(sprint => sprint.id === selectedSprint.id);
 
         if (currentIndex === -1) return;
 
         let newIndex = currentIndex;
         if (e.key === 'ArrowUp' && currentIndex > 0) {
           newIndex = currentIndex - 1;
-        } else if (e.key === 'ArrowDown' && currentIndex < sprints.length - 1) {
+        } else if (e.key === 'ArrowDown' && currentIndex < filteredSprints.length - 1) {
           newIndex = currentIndex + 1;
         }
 
         if (newIndex !== currentIndex) {
-          setSelectedSprint(sprints[newIndex]);
+          setSelectedSprint(filteredSprints[newIndex]);
           // Focus back on the content viewer
           if (contentViewerRef.current) {
             contentViewerRef.current.focus();
@@ -101,7 +119,39 @@ const SprintHistoryContainer: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [sprints, selectedSprint]); // This depends on sprints and selectedSprint, but won't cause an infinite loop
+  }, [filteredSprints, selectedSprint]);
+
+  // Effect to adjust selectedSprint when filters change or sprints load
+  useEffect(() => {
+    if (loading) return; // Don't adjust selection while sprints are loading
+
+    if (filteredSprints.length === 0) {
+      setSelectedSprint(null); // No sprints match, so no selection
+      return;
+    }
+
+    // If there's a selected sprint, check if it's still in the filtered list
+    if (selectedSprint) {
+      const isSelectedStillVisible = filteredSprints.some(s => s.id === selectedSprint.id);
+      if (!isSelectedStillVisible) {
+        // Selected sprint is filtered out, select the first of the filtered list
+        setSelectedSprint(filteredSprints[0]);
+      }
+      // If it is still visible, do nothing, keep current selection
+    } else {
+      // No sprint currently selected, select the first from the filtered list if available
+      setSelectedSprint(filteredSprints[0]);
+    }
+  }, [filteredSprints, selectedSprint, loading]);
+
+  // Calculate dynamic top for the list area
+  useLayoutEffect(() => {
+    if (headerRef.current && filterPanelWrapperRef.current) {
+      const newTop = headerRef.current.offsetHeight + filterPanelWrapperRef.current.offsetHeight;
+      setListAreaTop(newTop);
+    }
+    // Re-calculate if loading changes (content appears/disappears) or sprints data changes (affecting filter panel height via unique tags)
+  }, [loading, sprints, appliedFilters]); // appliedFilters can change uniqueTags count in FilterPanel
 
   // Memoize the handleSelectSprint function to prevent unnecessary recreations
   const handleSelectSprint = useCallback((sprint: Sprint) => {
@@ -122,51 +172,48 @@ const SprintHistoryContainer: React.FC = () => {
     try {
       await historyService.addTag(selectedSprint.id, newTag.trim());
 
-      // Update the selected sprint with the new tag
-      setSelectedSprint(prev => {
-        if (!prev) return null;
-
-        const currentTags = prev.tags || [];
-        return {
-          ...prev,
-          tags: [...currentTags, newTag.trim()]
-        };
-      });
+      // Update the selected sprint with the new tag AND the main sprints list
+      const newTagTrimmed = newTag.trim();
+      setSprints(prevSprints => prevSprints.map(s => 
+        s.id === selectedSprint.id ? { ...s, tags: [...(s.tags || []), newTagTrimmed] } : s
+      ));
+      // Selected sprint will update via the sprints state change and subsequent filteredSprints memoization
+      // and the useEffect that watches filteredSprints
 
       // Clear the input
       setNewTag('');
 
-      // Refresh the sprints list to update the selected sprint
-      loadSprints();
+      // No need to call loadSprints() here as we updated local state for immediate feedback
+      // loadSprints(); // This might still be desired for full consistency with backend or if other users modify tags
     } catch (error) {
       console.error('Error adding tag:', error);
     }
   };
 
   // Handle removing a tag
-  const handleRemoveTag = async (tag: string) => {
+  const handleRemoveTag = async (tagToRemove: string) => {
     if (!selectedSprint?.id) return;
 
     try {
-      await historyService.removeTag(selectedSprint.id, tag);
+      await historyService.removeTag(selectedSprint.id, tagToRemove);
 
-      // Update the selected sprint without the removed tag
-      setSelectedSprint(prev => {
-        if (!prev) return null;
+      // Update the selected sprint without the removed tag AND the main sprints list
+      setSprints(prevSprints => prevSprints.map(s => 
+        s.id === selectedSprint.id ? { ...s, tags: s.tags?.filter(t => t !== tagToRemove) || [] } : s
+      ));
+      // Selected sprint will update as above
 
-        const updatedTags = prev.tags?.filter(t => t !== tag) || [];
-        return {
-          ...prev,
-          tags: updatedTags
-        };
-      });
-
-      // Refresh the sprints list to update the selected sprint
-      loadSprints();
+      // No need to call loadSprints() for immediate feedback
+      // loadSprints();
     } catch (error) {
       console.error('Error removing tag:', error);
     }
   };
+
+  // Handle filter changes from FilterPanel
+  const handleFiltersChange = useCallback((newFilters: AppliedFilters) => {
+    setAppliedFilters(newFilters);
+  }, []);
 
   // Handle key press in tag input (submit on Enter)
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
@@ -185,9 +232,12 @@ const SprintHistoryContainer: React.FC = () => {
       <Row className="g-4">
         <Col lg={4} md={5}>
           <Card className="shadow-sm h-100 position-relative">
-            <Card.Header className="bg-light">
+            <Card.Header ref={headerRef} className="bg-light">
               <h5 className="mb-0">Sprint History</h5>
             </Card.Header>
+            <div ref={filterPanelWrapperRef} className="p-3 border-bottom">
+              <FilterPanel allSprints={sprints} onFiltersChange={handleFiltersChange} />
+            </div>
             {loading ? (
               <div className="d-flex justify-content-center align-items-center p-5">
                 <Spinner animation="border" role="status">
@@ -195,25 +245,29 @@ const SprintHistoryContainer: React.FC = () => {
                 </Spinner>
               </div>
             ) : (
-              <>
-                {/* Desktop view (md and up) - absolute positioning for scrolling within fixed container */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: `${listAreaTop}px`,
+                  left: '0px',
+                  right: '0px',
+                  bottom: '1px',
+                  overflowY: 'auto',
+                }}
+              >
                 <div 
-                  className="list-container position-absolute rounded-1 d-none d-md-block" 
-                  style={{ 
-                    overflow: "auto", 
-                    top: "41px", 
-                    bottom: "1px", 
-                    left: "0", 
-                    right: "0"
-                  }}
+                  className="list-container d-none d-md-block"
                 >
                   <ListGroup variant="flush" className="border-0">
-                    {sprints.length === 0 ? (
+                    {filteredSprints.length === 0 ? (
                       <ListGroup.Item className="text-center py-5 text-muted">
-                        No sprints found. Complete your first sprint to see it here!
+                        {appliedFilters.tags.length > 0 ? 
+                          "No sprints match the selected tags." : 
+                          "No sprints found. Complete your first sprint to see it here!"
+                        }
                       </ListGroup.Item>
                     ) : (
-                      sprints.map(sprint => {
+                      filteredSprints.map(sprint => {
                         const isSelected = selectedSprint?.id === sprint.id;
                         return (
                           <ListGroup.Item
@@ -265,15 +319,17 @@ const SprintHistoryContainer: React.FC = () => {
                   </ListGroup>
                 </div>
 
-                {/* Mobile view (below md) - regular positioning to fit in the flow */}
-                <div className="d-md-none">
-                  <ListGroup variant="flush" style={{ maxHeight: "400px", overflowY: "auto" }}>
-                    {sprints.length === 0 ? (
+                <div className="d-md-none p-0" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  <ListGroup variant="flush" className="border-0">
+                    {filteredSprints.length === 0 ? (
                       <ListGroup.Item className="text-center py-5 text-muted">
-                        No sprints found. Complete your first sprint to see it here!
+                        {appliedFilters.tags.length > 0 ? 
+                          "No sprints match the selected tags." : 
+                          "No sprints found. Complete your first sprint to see it here!"
+                        }
                       </ListGroup.Item>
                     ) : (
-                      sprints.map(sprint => {
+                      filteredSprints.map(sprint => {
                         const isSelected = selectedSprint?.id === sprint.id;
                         return (
                           <ListGroup.Item
@@ -324,7 +380,7 @@ const SprintHistoryContainer: React.FC = () => {
                     )}
                   </ListGroup>
                 </div>
-              </>
+              </div>
             )}
           </Card>
         </Col>
@@ -422,7 +478,7 @@ const SprintHistoryContainer: React.FC = () => {
                 </>
               ) : (
                 <div className="text-center text-muted py-5">
-                  {sprints.length > 0
+                  {filteredSprints.length > 0
                     ? 'Select a sprint to view its content'
                     : 'No sprints available. Complete your first sprint!'}
                 </div>
