@@ -38,36 +38,40 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ allSprints, onFiltersChange }
   }, []);
 
   return (
-    <div className="mb-3">
+    <>
       <h5>Filter by Tags</h5>
-      {uniqueTags.length > 0 ? (
-        <div className="mb-2">
-          {uniqueTags.map(tag => (
-            <Badge
-              key={tag}
-              pill
-              bg={selectedTags.includes(tag) ? 'primary' : 'secondary'}
-              onClick={() => handleToggleTag(tag)}
-              className="me-1 mb-1"
-              style={{ cursor: 'pointer' }}
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      ) : (
-        <p className="text-muted small">No tags available for filtering.</p>
-      )}
-      {selectedTags.length > 0 && (
-        <Button variant="outline-secondary" size="sm" onClick={handleClearTagFilters}>
-          Clear Tag Filters
-        </Button>
-      )}
+      {
+        uniqueTags.length > 0 ? (
+          <div className="mb-2">
+            {uniqueTags.map(tag => (
+              <Badge
+                key={tag}
+                pill
+                bg={selectedTags.includes(tag) ? 'primary' : 'secondary'}
+                onClick={() => handleToggleTag(tag)}
+                className="me-1 mb-1"
+                style={{ cursor: 'pointer' }}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted small">No tags available for filtering.</p>
+        )
+      }
+      {
+        selectedTags.length > 0 && (
+          <Button variant="outline-secondary" size="sm" onClick={handleClearTagFilters}>
+            Clear Tag Filters
+          </Button>
+        )
+      }
       {/* Placeholder for future filter types like date range */}
       {/* <hr /> */}
       {/* <h5>Filter by Date Range</h5> */}
       {/* ... date range filter UI ... */}
-    </div>
+    </>
   );
 };
 
