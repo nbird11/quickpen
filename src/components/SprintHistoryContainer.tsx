@@ -16,11 +16,12 @@ const SprintHistoryContainer: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [] });
   const contentViewerRef = useRef<HTMLTextAreaElement>(null);
+  const [isFilterPanelVisible, setIsFilterPanelVisible] = useState(false);
 
   // Refs for height calculation
   const headerRef = useRef<HTMLDivElement>(null);
   const filterPanelWrapperRef = useRef<HTMLDivElement>(null);
-  const [listAreaTop, setListAreaTop] = useState(120); // Initial reasonable default
+  const [listAreaTop, setListAreaTop] = useState(120);
 
   // Function to load sprint history - this should NOT depend on selectedSprint
   const loadSprints = useCallback(async () => {
@@ -146,12 +147,20 @@ const SprintHistoryContainer: React.FC = () => {
 
   // Calculate dynamic top for the list area
   useLayoutEffect(() => {
-    if (headerRef.current && filterPanelWrapperRef.current) {
-      const newTop = headerRef.current.offsetHeight + filterPanelWrapperRef.current.offsetHeight;
+    let panelHeight = 0;
+    if (isFilterPanelVisible && filterPanelWrapperRef.current) {
+      // If visible and ref is set, measure height
+      panelHeight = filterPanelWrapperRef.current.offsetHeight;
+    } 
+    // If not visible, or ref not set yet in this cycle, panelHeight remains 0.
+    
+    if (headerRef.current) {
+      const newTop = headerRef.current.offsetHeight + panelHeight;
       setListAreaTop(newTop);
     }
-    // Re-calculate if loading changes (content appears/disappears) or sprints data changes (affecting filter panel height via unique tags)
-  }, [loading, sprints, appliedFilters]); // appliedFilters can change uniqueTags count in FilterPanel
+    // Dependencies: isFilterPanelVisible is crucial.
+    // loading (if header changes), sprints/appliedFilters (if FilterPanel content changes affecting its height and it's visible)
+  }, [isFilterPanelVisible, loading, sprints, appliedFilters, headerRef, filterPanelWrapperRef]);
 
   // Memoize the handleSelectSprint function to prevent unnecessary recreations
   const handleSelectSprint = useCallback((sprint: Sprint) => {
@@ -247,12 +256,25 @@ const SprintHistoryContainer: React.FC = () => {
       <Row className="g-4">
         <Col lg={4} md={5}>
           <Card className="shadow-sm h-100 position-relative">
-            <Card.Header ref={headerRef} className="bg-light">
+            <Card.Header ref={headerRef} className="bg-light d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Sprint History</h5>
+              <Button
+                variant="link"
+                onClick={() => setIsFilterPanelVisible(!isFilterPanelVisible)}
+                aria-label={isFilterPanelVisible ? "Hide filters" : "Show filters"}
+                title={isFilterPanelVisible ? "Hide filters" : "Show filters"}
+                className="p-1 text-secondary"
+              >
+                <i className={`bi ${isFilterPanelVisible ? 'bi-funnel-fill' : 'bi-funnel'}`} style={{ fontSize: '1.25rem' }}></i>
+              </Button>
             </Card.Header>
-            <div ref={filterPanelWrapperRef} className="p-3 border-bottom">
-              <FilterPanel allSprints={sprints} onFiltersChange={handleFiltersChange} />
-            </div>
+            
+            {isFilterPanelVisible && (
+              <div ref={filterPanelWrapperRef} className="p-3 border-bottom">
+                <FilterPanel allSprints={sprints} onFiltersChange={handleFiltersChange} />
+              </div>
+            )}
+
             {loading ? (
               <div className="d-flex justify-content-center align-items-center p-5">
                 <Spinner animation="border" role="status">
