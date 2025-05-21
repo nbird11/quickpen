@@ -14,9 +14,11 @@ const SprintHistoryContainer: React.FC = () => {
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [newTag, setNewTag] = useState('');
   const [loading, setLoading] = useState(true);
-  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [] });
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [], dateRange: { startDate: null, endDate: null } });
   const contentViewerRef = useRef<HTMLTextAreaElement>(null);
   const [isFilterPanelVisible, setIsFilterPanelVisible] = useState(false);
+  const [isTagFilterEnabled, setIsTagFilterEnabled] = useState(false);
+  const [isDateFilterEnabled, setIsDateFilterEnabled] = useState(false);
 
   // Refs for height calculation
   const headerRef = useRef<HTMLDivElement>(null);
@@ -74,13 +76,35 @@ const SprintHistoryContainer: React.FC = () => {
 
   // Memoized filtered sprints based on appliedFilters
   const filteredSprints = useMemo(() => {
-    if (appliedFilters.tags.length === 0) {
-      return sprints; // No tag filter applied, return all sprints
-    }
-    return sprints.filter(sprint =>
-      appliedFilters.tags.every(filterTag => sprint.tags?.includes(filterTag))
-    );
-  }, [sprints, appliedFilters]);
+    return sprints.filter(sprint => {
+      // Tag filtering
+      let tagsMatch = true;
+      if (isTagFilterEnabled && appliedFilters.tags.length > 0) {
+        tagsMatch = appliedFilters.tags.every(filterTag => sprint.tags?.includes(filterTag));
+      }
+
+      // Date range filtering
+      let dateMatch = true;
+      if (isDateFilterEnabled && (appliedFilters.dateRange?.startDate || appliedFilters.dateRange?.endDate)) {
+        const sprintDate = new Date(sprint.completedAt);
+        if (appliedFilters.dateRange?.startDate && appliedFilters.dateRange?.endDate) {
+          const startDate = new Date(appliedFilters.dateRange.startDate);
+          const endDate = new Date(appliedFilters.dateRange.endDate);
+          endDate.setHours(23, 59, 59, 999);
+          dateMatch = sprintDate >= startDate && sprintDate <= endDate;
+        } else if (appliedFilters.dateRange?.startDate) {
+          const startDate = new Date(appliedFilters.dateRange.startDate);
+          dateMatch = sprintDate >= startDate;
+        } else if (appliedFilters.dateRange?.endDate) {
+          const endDate = new Date(appliedFilters.dateRange.endDate);
+          endDate.setHours(23, 59, 59, 999);
+          dateMatch = sprintDate <= endDate;
+        }
+      }
+
+      return tagsMatch && dateMatch;
+    });
+  }, [sprints, appliedFilters, isTagFilterEnabled, isDateFilterEnabled]);
 
   // 3. Effect to handle keyboard navigation - MUST be separate
   useEffect(() => {
@@ -271,7 +295,15 @@ const SprintHistoryContainer: React.FC = () => {
             
             {isFilterPanelVisible && (
               <div ref={filterPanelWrapperRef} className="p-3 border-bottom">
-                <FilterPanel allSprints={sprints} onFiltersChange={handleFiltersChange} />
+                <FilterPanel 
+                  allSprints={sprints} 
+                  currentAppliedFilters={appliedFilters}
+                  onFiltersChange={handleFiltersChange} 
+                  isTagFilterEnabled={isTagFilterEnabled}
+                  onSetIsTagFilterEnabled={setIsTagFilterEnabled}
+                  isDateFilterEnabled={isDateFilterEnabled}
+                  onSetIsDateFilterEnabled={setIsDateFilterEnabled}
+                />
               </div>
             )}
 
