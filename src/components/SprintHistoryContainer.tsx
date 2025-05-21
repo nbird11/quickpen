@@ -14,11 +14,12 @@ const SprintHistoryContainer: React.FC = () => {
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [newTag, setNewTag] = useState('');
   const [loading, setLoading] = useState(true);
-  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [], dateRange: { startDate: null, endDate: null } });
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [], dateRange: { startDate: null, endDate: null }, contentQuery: null });
   const contentViewerRef = useRef<HTMLTextAreaElement>(null);
   const [isFilterPanelVisible, setIsFilterPanelVisible] = useState(false);
   const [isTagFilterEnabled, setIsTagFilterEnabled] = useState(false);
   const [isDateFilterEnabled, setIsDateFilterEnabled] = useState(false);
+  const [isContentFilterEnabled, setIsContentFilterEnabled] = useState(false);
 
   // Refs for height calculation
   const headerRef = useRef<HTMLDivElement>(null);
@@ -102,9 +103,16 @@ const SprintHistoryContainer: React.FC = () => {
         }
       }
 
-      return tagsMatch && dateMatch;
+      // Content filtering
+      let contentMatch = true;
+      if (isContentFilterEnabled && appliedFilters.contentQuery && appliedFilters.contentQuery.trim() !== '') {
+        const query = appliedFilters.contentQuery.toLowerCase();
+        contentMatch = sprint.content.toLowerCase().includes(query);
+      }
+
+      return tagsMatch && dateMatch && contentMatch;
     });
-  }, [sprints, appliedFilters, isTagFilterEnabled, isDateFilterEnabled]);
+  }, [sprints, appliedFilters, isTagFilterEnabled, isDateFilterEnabled, isContentFilterEnabled]);
 
   // 3. Effect to handle keyboard navigation - MUST be separate
   useEffect(() => {
@@ -303,6 +311,8 @@ const SprintHistoryContainer: React.FC = () => {
                   onSetIsTagFilterEnabled={setIsTagFilterEnabled}
                   isDateFilterEnabled={isDateFilterEnabled}
                   onSetIsDateFilterEnabled={setIsDateFilterEnabled}
+                  isContentFilterEnabled={isContentFilterEnabled}
+                  onSetIsContentFilterEnabled={setIsContentFilterEnabled}
                 />
               </div>
             )}
@@ -330,8 +340,8 @@ const SprintHistoryContainer: React.FC = () => {
                   <ListGroup variant="flush" className="border-0">
                     {filteredSprints.length === 0 ? (
                       <ListGroup.Item className="text-center py-5 text-muted">
-                        {appliedFilters.tags.length > 0 ? 
-                          "No sprints match the selected tags." : 
+                        {(appliedFilters.tags.length > 0 || appliedFilters.dateRange?.startDate || appliedFilters.dateRange?.endDate || appliedFilters.contentQuery) ? 
+                          "No sprints match the selected filters." : 
                           "No sprints found. Complete your first sprint to see it here!"
                         }
                       </ListGroup.Item>
@@ -392,8 +402,8 @@ const SprintHistoryContainer: React.FC = () => {
                   <ListGroup variant="flush" className="border-0">
                     {filteredSprints.length === 0 ? (
                       <ListGroup.Item className="text-center py-5 text-muted">
-                        {appliedFilters.tags.length > 0 ? 
-                          "No sprints match the selected tags." : 
+                        {(appliedFilters.tags.length > 0 || appliedFilters.dateRange?.startDate || appliedFilters.dateRange?.endDate || appliedFilters.contentQuery) ? 
+                          "No sprints match the selected filters." : 
                           "No sprints found. Complete your first sprint to see it here!"
                         }
                       </ListGroup.Item>

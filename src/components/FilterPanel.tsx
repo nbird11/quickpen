@@ -11,6 +11,8 @@ interface FilterPanelProps {
   onSetIsTagFilterEnabled: (enabled: boolean) => void;
   isDateFilterEnabled: boolean;
   onSetIsDateFilterEnabled: (enabled: boolean) => void;
+  isContentFilterEnabled: boolean;
+  onSetIsContentFilterEnabled: (enabled: boolean) => void;
 }
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -21,11 +23,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onSetIsTagFilterEnabled,
   isDateFilterEnabled,
   onSetIsDateFilterEnabled,
+  isContentFilterEnabled,
+  onSetIsContentFilterEnabled,
 }) => {
   const [selectedTags, setSelectedTags] = useState<string[]>(currentAppliedFilters.tags);
   const [tagSearchQuery, setTagSearchQuery] = useState('');
   const [startDate, setStartDate] = useState<string | null>(currentAppliedFilters.dateRange?.startDate || null);
   const [endDate, setEndDate] = useState<string | null>(currentAppliedFilters.dateRange?.endDate || null);
+  const [localContentQuery, setLocalContentQuery] = useState<string | null>(currentAppliedFilters.contentQuery || null);
 
   const allUniqueTags = useMemo(() => {
     const tagsSet = new Set<string>();
@@ -45,11 +50,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   }, [allUniqueTags, tagSearchQuery]);
 
   // Effect to synchronize local state with incoming props if they change from parent
-  // This is important if filters can be changed externally or reset by the parent
   useEffect(() => {
     setSelectedTags(currentAppliedFilters.tags);
     setStartDate(currentAppliedFilters.dateRange?.startDate || null);
     setEndDate(currentAppliedFilters.dateRange?.endDate || null);
+    setLocalContentQuery(currentAppliedFilters.contentQuery || null);
   }, [currentAppliedFilters]);
 
   // Effect to notify parent component of filter changes
@@ -59,10 +64,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       dateRange: {
         startDate: isDateFilterEnabled ? startDate : null,
         endDate: isDateFilterEnabled ? endDate : null,
-      }
+      },
+      contentQuery: isContentFilterEnabled ? (localContentQuery || '').trim() : null,
     };
     onFiltersChange(filtersToApply);
-  }, [selectedTags, startDate, endDate, isTagFilterEnabled, isDateFilterEnabled, onFiltersChange]);
+  }, [selectedTags, startDate, endDate, localContentQuery, isTagFilterEnabled, isDateFilterEnabled, isContentFilterEnabled, onFiltersChange]);
 
   const handleToggleTag = useCallback((tag: string) => {
     setSelectedTags(prev =>
@@ -108,6 +114,19 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             }
           }} 
         />
+        <Form.Check 
+          type="switch" 
+          id="content-filter-switch"
+          label="Content Search" 
+          checked={isContentFilterEnabled} 
+          onChange={() => {
+            const newActiveState = !isContentFilterEnabled;
+            onSetIsContentFilterEnabled(newActiveState);
+            if (!newActiveState) {
+              setLocalContentQuery('');
+            }
+          }} 
+        />
       </div>
 
       {isTagFilterEnabled && (
@@ -135,9 +154,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   border: '1px solid #dee2e6',
                   padding: '0.5rem'
                 }}
-                // TODO: Investigate if the height of this scrollable tag area can be made
-                // to adjust more immediately as tagSearchQuery changes, rather than primarily
-                // after a tag selection/deselection. Current behavior is acceptable but could be smoother.
               >
                 {displayedTags.length > 0 ? displayedTags.map(tag => (
                   <Badge
@@ -173,7 +189,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           <hr />
           {/* Date Range Filtering Section */}
           <h5>Filter by Date Range</h5>
-          {/* Placeholder for date range picker UI */}
           <Form.Group className="mb-2">
             <Form.Label size="sm">Start Date</Form.Label>
             <Form.Control 
@@ -190,7 +205,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               size="sm" 
               value={endDate || ''} 
               onChange={(e) => setEndDate(e.target.value || null)} 
-              min={startDate || undefined} // Prevent selecting end date before start date
+              min={startDate || undefined}
             />
           </Form.Group>
           {(startDate || endDate) && (
@@ -203,6 +218,31 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               }}
             >
               Clear Dates
+            </Button>
+          )}
+        </>
+      )}
+
+      {isContentFilterEnabled && (
+        <>
+          <hr />
+          <h5>Filter by Content</h5>
+          <Form.Group className="mb-2">
+            <Form.Control
+              type="text"
+              placeholder="Search in sprint content..."
+              value={localContentQuery || ''}
+              onChange={(e) => setLocalContentQuery(e.target.value)}
+              size="sm"
+            />
+          </Form.Group>
+          {(localContentQuery && localContentQuery.trim() !== '') && (
+            <Button 
+              variant="outline-secondary" 
+              size="sm" 
+              onClick={() => setLocalContentQuery('')}
+            >
+              Clear Content Search
             </Button>
           )}
         </>
