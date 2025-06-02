@@ -14,7 +14,7 @@ const Home = () => {
       <Hero />
 
       {/* Features Section */}
-      <section className="bg-white py-5">
+      <section className="bg-body-tertiary py-5">
         <Container>
           <h2 className="text-center mb-5">Why Choose QuickPen?</h2>
           <Row className="g-4">

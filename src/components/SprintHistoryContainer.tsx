@@ -288,7 +288,7 @@ const SprintHistoryContainer: React.FC = () => {
       <Row className="g-4">
         <Col lg={4} md={5}>
           <Card className="shadow-sm h-100 position-relative">
-            <Card.Header ref={headerRef} className="bg-light d-flex justify-content-between align-items-center">
+            <Card.Header ref={headerRef} className="bg-body-tertiary d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Sprint History</h5>
               <Button
                 variant="link"
@@ -466,7 +466,7 @@ const SprintHistoryContainer: React.FC = () => {
 
         <Col lg={8} md={7}>
           <Card className="shadow-sm h-100">
-            <Card.Header className="bg-light">
+            <Card.Header className="bg-body-tertiary">
               <h5 className="mb-0">Sprint Content</h5>
             </Card.Header>
             <Card.Body>

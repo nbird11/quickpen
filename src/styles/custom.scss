@@ -43,8 +43,7 @@ $font-family-base: $font-family-sans-serif;
 $headings-font-family: $font-family-sans-serif;
 
 // Import Bootstrap with custom variables - using @use with 'with' to pass variables
-@use "bootstrap/scss/bootstrap" with (
-  $primary: $primary,
+@use "bootstrap/scss/bootstrap" with ($primary: $primary,
   $secondary: $secondary,
   $border-radius: $border-radius,
   $border-radius-lg: $border-radius-lg,
@@ -52,8 +51,7 @@ $headings-font-family: $font-family-sans-serif;
   $font-family-sans-serif: $font-family-sans-serif,
   $font-family-base: $font-family-base,
   $headings-font-family: $headings-font-family,
-  $theme-colors: $theme-colors
-);
+  $theme-colors: $theme-colors);
 
 // Additional custom styles
 
@@ -90,6 +88,7 @@ $headings-font-family: $font-family-sans-serif;
 
 // Customize button hover states
 .btn-primary {
+
   &:hover,
   &:focus,
   &:active {
@@ -99,6 +98,7 @@ $headings-font-family: $font-family-sans-serif;
 }
 
 .btn-secondary {
+
   &:hover,
   &:focus,
   &:active {
@@ -186,5 +186,68 @@ $headings-font-family: $font-family-sans-serif;
 
   &:hover {
     opacity: 1;
+  }
+}
+
+// Dark theme specific overrides
+[data-bs-theme="dark"] {
+  // Override primary color for dark mode
+  --bs-primary: #8BC98D; // A slightly less saturated green
+  --bs-primary-rgb: #{red(#8BC98D)},
+  #{green(#8BC98D)},
+  #{blue(#8BC98D)}; // 139, 201, 141
+
+  // Adjust btn-outline-primary for dark mode
+  .btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-hover-color: #000;
+
+    --bs-btn-active-bg: #{color.adjust(#8BC98D, $lightness: -10%)}; // Adjust for the new color
+    --bs-btn-active-border-color: #{color.adjust(#8BC98D, $lightness: -10%)}; // Adjust for the new color
+    --bs-btn-active-color: #000;
+  }
+
+  // Make sure primary text (like the brand) uses the new primary color
+  .text-primary {
+    color: var(--bs-primary) !important;
+  }
+
+  .navbar-brand span {
+    color: var(--bs-primary);
+  }
+
+  .dropdown-menu {
+    --bs-dropdown-link-active-bg: var(--bs-primary);
+    --bs-dropdown-link-active-color: #000;
+  }
+
+  // Dark mode override for bg-sepia-light
+  .bg-sepia-light {
+    background-color: #4a453d !important; 
+    // Consider text colors within this section for contrast
+  }
+
+  // Override for accent2 related classes in dark mode
+  .bg-accent2 {
+    background-color: #3E4C5A !important; 
+    color: var(--bs-light) !important; 
+  }
+
+  .text-accent2 {
+    color: #A8B5C1 !important; 
+  }
+
+  .border-accent2 {
+    border-color: #3E4C5A !important;
+  }
+
+  .card.bg-accent2.bg-opacity-25 {
+     background-color: #35414D !important; 
+     h6, .form-label {
+         color: var(--bs-light-text-emphasis) !important;
+     }
   }
 }

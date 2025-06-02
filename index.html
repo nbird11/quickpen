@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/pen.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QuickPen</title>
+    <script>
+      (function() {
+        const storedTheme = localStorage.getItem('theme');
+        const getPreferredTheme = () => {
+          if (storedTheme) {
+            return storedTheme;
+          }
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+        document.documentElement.setAttribute('data-bs-theme', getPreferredTheme());
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

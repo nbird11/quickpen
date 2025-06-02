@@ -7,6 +7,7 @@ import { authService } from '../services/auth';
 import * as firebaseui from 'firebaseui';
 import firebase from '../services/firebase';
 import 'firebaseui/dist/firebaseui.css';
+import ThemeToggle from './ThemeToggle';
 
 export function Navbar() {
   const { user } = useAppSelector(state => state.auth);
@@ -43,11 +44,11 @@ export function Navbar() {
 
   return (
     <>
-      <BsNavbar expand="lg" className="bg-light shadow-sm">
+      <BsNavbar expand="lg" className="bg-body-tertiary shadow-sm">
         <Container>
           <BsNavbar.Brand href="/home" className="d-flex align-items-center gap-3 text-primary">
             <img src={pen} alt="QuickPen" className="d-block" style={{ width: '35px', height: '35px' }} />
-            <span className="fw-semibold text-dark text-opacity-80">QuickPen</span>
+            <span className="fw-semibold">QuickPen</span>
           </BsNavbar.Brand>
 
           <BsNavbar.Toggle aria-controls="basic-navbar-nav" />
@@ -61,14 +62,18 @@ export function Navbar() {
                 </>
               )}
             </Nav>
+            <div className="d-flex align-items-center ms-auto ms-lg-0">
+              <div className="me-2">
+                <ThemeToggle />
+              </div>
+              <Button
+                variant={user ? 'outline-primary' : 'primary'}
+                onClick={() => user ? authService.signOut() : setShowAuth(true)}
+              >
+                {user ? 'Logout' : 'Login'}
+              </Button>
+            </div>
           </BsNavbar.Collapse>
-
-          <Button
-            variant={user ? 'outline-primary' : 'primary'}
-            onClick={() => user ? authService.signOut() : setShowAuth(true)}
-          >
-            {user ? 'Logout' : 'Login'}
-          </Button>
         </Container>
       </BsNavbar>
 

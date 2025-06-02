@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { useThemeManager } from './hooks/useThemeManager';
 import { Navbar } from './components/Navbar';
 
 // Lazy load route components
@@ -9,6 +10,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const History = lazy(() => import('./pages/History'));
 
 const App = () => {
+  useThemeManager();
   const { user, loading, error } = useAuth();
 
   if (loading) {
