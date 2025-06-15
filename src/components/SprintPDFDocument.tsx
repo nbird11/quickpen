@@ -55,11 +55,8 @@ const styles = StyleSheet.create({
   sprintContent: {
     fontSize: 10,
     fontFamily: 'Courier',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#F9F9F9',
     padding: 10,
-    borderRadius: 3,
+    marginBottom: 10,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -97,6 +94,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'grey',
     fontSize: 9,
+  },
+  contentPage: {
+    padding: 40,
+  },
+  separator: {
+    marginVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   }
 });
 
@@ -171,46 +176,20 @@ const SprintPDFDocument: React.FC<SprintPDFDocumentProps> = ({ sprints }) => {
         </Text>
       </Page>
 
-      {/* --- Individual Sprint Pages --- */}
-      {sortedSprints.map((sprint, index) => {
-        const duration = sprint.actualDuration ?? sprint.duration;
-        const wpm = duration > 0 ? Math.round((sprint.wordCount / duration) * 60) : 0;
-        
-        return (
-          <Page key={sprint.id || index} size="A4" style={styles.page}>
-            <View style={styles.sectionTitle}>
-              <Text>Sprint from {new Date(sprint.completedAt).toLocaleString()}</Text>
-            </View>
-
-            <View style={styles.statsContainer}>
-              <View style={styles.stat}>
-                  <Text style={styles.statValue}>{wpm}</Text>
-                  <Text style={styles.statLabel}>WPM</Text>
-              </View>
-              <View style={styles.stat}>
-                  <Text style={styles.statValue}>{sprint.wordCount}</Text>
-                  <Text style={styles.statLabel}>Words</Text>
-              </View>
-              <View style={styles.stat}>
-                  <Text style={styles.statValue}>{formatDuration(duration)}</Text>
-                  <Text style={styles.statLabel}>Duration</Text>
-              </View>
-            </View>
-            
-            <View style={styles.section}>
-                <Text style={styles.text}>Tags: {sprint.tags?.join(', ') || 'None'}</Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sprintContent}>{sprint.content}</Text>
-            </View>
-
-             <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-                `${pageNumber} / ${totalPages}`
-              )} fixed />
-          </Page>
-        )
-      })}
+      {/* --- Combined Content Page --- */}
+      <Page size="A4" style={[styles.page, styles.contentPage]} wrap>
+        <View>
+          <Text style={styles.sectionTitle}>Combined Sprint Content</Text>
+          {sortedSprints.map((sprint) => (
+            <Text key={sprint.id} style={styles.sprintContent}>
+              {sprint.content}
+            </Text>
+          ))}
+        </View>
+        <Text style={styles.footer} render={({ pageNumber }) => (
+          `Page ${pageNumber}`
+        )} fixed />
+      </Page>
     </Document>
   );
 }
