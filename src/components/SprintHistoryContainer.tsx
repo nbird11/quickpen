@@ -4,6 +4,7 @@ import { historyService } from '../services/history';
 import { Sprint } from '../types/sprint';
 import { AppliedFilters } from '../types/filters';
 import FilterPanel from './FilterPanel';
+import ExportPanel from './ExportPanel';
 import { Container, Row, Col, Card, ListGroup, Form, Button, Badge, Spinner } from 'react-bootstrap';
 import { formatDistanceToNow } from 'date-fns';
 import { eventService, EVENTS } from '../services/events';
@@ -27,6 +28,7 @@ const SprintHistoryContainer: React.FC = () => {
 
   // Refs for height calculation
   const headerRef = useRef<HTMLDivElement>(null);
+  const exportPanelWrapperRef = useRef<HTMLDivElement>(null);
   const filterPanelWrapperRef = useRef<HTMLDivElement>(null);
   const [listAreaTop, setListAreaTop] = useState(120);
 
@@ -201,20 +203,25 @@ const SprintHistoryContainer: React.FC = () => {
 
   // Calculate dynamic top for the list area
   useLayoutEffect(() => {
-    let panelHeight = 0;
+    let exportPanelHeight = 0;
+    if (isExportSelectionModeActive && exportPanelWrapperRef.current) {
+      exportPanelHeight = exportPanelWrapperRef.current.offsetHeight;
+    }
+
+    let filterPanelHeight = 0;
     if (isFilterPanelVisible && filterPanelWrapperRef.current) {
       // If visible and ref is set, measure height
-      panelHeight = filterPanelWrapperRef.current.offsetHeight;
+      filterPanelHeight = filterPanelWrapperRef.current.offsetHeight;
     } 
     // If not visible, or ref not set yet in this cycle, panelHeight remains 0.
     
     if (headerRef.current) {
-      const newTop = headerRef.current.offsetHeight + panelHeight;
+      const newTop = headerRef.current.offsetHeight + exportPanelHeight + filterPanelHeight;
       setListAreaTop(newTop);
     }
     // Dependencies: isFilterPanelVisible is crucial.
     // loading (if header changes), sprints/appliedFilters (if FilterPanel content changes affecting its height and it's visible)
-  }, [isFilterPanelVisible, loading, sprints, appliedFilters, headerRef, filterPanelWrapperRef, isExportSelectionModeActive]);
+  }, [isFilterPanelVisible, isExportSelectionModeActive, loading, sprints, appliedFilters, headerRef, filterPanelWrapperRef, exportPanelWrapperRef]);
 
   // Memoize the handleSelectSprint function to prevent unnecessary recreations
   const handleSelectSprint = useCallback((sprint: Sprint) => {
@@ -370,42 +377,16 @@ const SprintHistoryContainer: React.FC = () => {
             <Card.Header ref={headerRef} className="bg-body-tertiary d-flex justify-content-between align-items-center">
               <div className="d-flex align-items-center">
                 <h5 className="mb-0 me-3">Sprint History</h5>
-                {isExportSelectionModeActive && (
-                  <Form.Check
-                    type="checkbox"
-                    id="select-all-sprints-checkbox"
-                    label="Select All (Visible)"
-                    checked={allVisibleSprintsSelected}
-                    onChange={handleSelectAllVisibleChange}
-                    className="me-2"
-                    disabled={filteredSprints.length === 0}
-                  />
-                )}
               </div>
               <div className="d-flex align-items-center">
-                {isExportSelectionModeActive && (
-                  <Button
-                    variant={selectedSprintIdsForExport.length === 0 ? "outline-primary" : "primary"}
-                    size="sm"
-                    onClick={handleExportTxt}
-                    disabled={selectedSprintIdsForExport.length === 0}
-                    className="me-2"
-                  >
-                    Export Selected (.txt)
-                  </Button>
-                )}
                 <Button
-                  variant={isExportSelectionModeActive ? "outline-danger" : "outline-primary"}
-                  size="sm"
-                  onClick={() => {
-                    if (isExportSelectionModeActive) {
-                      setSelectedSprintIdsForExport([]); // Clear selections when cancelling
-                    }
-                    setIsExportSelectionModeActive(!isExportSelectionModeActive);
-                  }}
-                  className="me-2"
+                  variant="link"
+                  onClick={() => setIsExportSelectionModeActive(!isExportSelectionModeActive)}
+                  aria-label={isExportSelectionModeActive ? "Hide export panel" : "Prepare Export"}
+                  title={isExportSelectionModeActive ? "Hide export panel" : "Prepare Export"}
+                  className="p-1 text-secondary me-2"
                 >
-                  {isExportSelectionModeActive ? "Cancel Export" : "Prepare Export"}
+                  <i className={`bi ${isExportSelectionModeActive ? 'bi-file-earmark-arrow-up-fill' : 'bi-file-earmark-arrow-up'}`} style={{ fontSize: '1.25rem' }}></i>
                 </Button>
                 <Button
                   variant="link"
@@ -418,6 +399,23 @@ const SprintHistoryContainer: React.FC = () => {
                 </Button>
               </div>
             </Card.Header>
+
+            {isExportSelectionModeActive && (
+              <div ref={exportPanelWrapperRef}>
+                <ExportPanel 
+                  onCancel={() => {
+                    setIsExportSelectionModeActive(false);
+                    setSelectedSprintIdsForExport([]);
+                  }}
+                  onExport={handleExportTxt}
+                  onSelectAllChange={handleSelectAllVisibleChange}
+                  allVisibleSprintsSelected={allVisibleSprintsSelected}
+                  selectedCount={selectedSprintIdsForExport.length}
+                  totalCount={filteredSprints.length}
+                  disabled={loading}
+                />
+              </div>
+            )}
             
             {isFilterPanelVisible && (
               <div ref={filterPanelWrapperRef} className="p-3 border-bottom">
