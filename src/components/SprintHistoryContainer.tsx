@@ -5,9 +5,13 @@ import { Sprint } from '../types/sprint';
 import { AppliedFilters } from '../types/filters';
 import FilterPanel from './FilterPanel';
 import ExportPanel from './ExportPanel';
+import SprintPDFDocument from './SprintPDFDocument';
+import { pdf } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
 import { Container, Row, Col, Card, ListGroup, Form, Button, Badge, Spinner } from 'react-bootstrap';
 import { formatDistanceToNow } from 'date-fns';
 import { eventService, EVENTS } from '../services/events';
+import { formatDuration } from '../utils/formatters';
 
 const SprintHistoryContainer: React.FC = () => {
   const { user } = useAuth();
@@ -15,6 +19,7 @@ const SprintHistoryContainer: React.FC = () => {
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [newTag, setNewTag] = useState('');
   const [loading, setLoading] = useState(true);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({ tags: [], dateRange: { startDate: null, endDate: null }, contentQuery: null });
   const contentViewerRef = useRef<HTMLTextAreaElement>(null);
   const [isFilterPanelVisible, setIsFilterPanelVisible] = useState(false);
@@ -228,13 +233,6 @@ const SprintHistoryContainer: React.FC = () => {
     setSelectedSprint(sprint);
   }, []);
 
-  // Format duration from seconds to a readable format
-  const formatDuration = useCallback((seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }, []);
-
   // Handle adding a tag
   const handleAddTag = async () => {
     if (!selectedSprint?.id || !newTag.trim()) return;
@@ -365,6 +363,38 @@ const SprintHistoryContainer: React.FC = () => {
     setSelectedSprintIdsForExport([]);
   };
 
+  const handleExportPdf = async () => {
+    if (selectedSprintIdsForExport.length === 0 || exportingPdf) return;
+
+    setExportingPdf(true);
+
+    try {
+      const sprintsToExport = sprints
+        .filter(sprint => sprint.id && selectedSprintIdsForExport.includes(sprint.id))
+        .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+
+      if (sprintsToExport.length === 0) return;
+
+      const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\.\d+Z$/, 'Z');
+      const fileName = `QuickPen_Export_${timestamp}.pdf`;
+
+      // Generate blob
+      const blob = await pdf(<SprintPDFDocument sprints={sprintsToExport} />).toBlob();
+      
+      // Trigger download
+      saveAs(blob, fileName);
+
+    } catch (error) {
+      console.error("Error generating or saving PDF:", error);
+      // Here you might want to show an error notification to the user
+    } finally {
+      setExportingPdf(false);
+      // Optionally reset export mode
+      setIsExportSelectionModeActive(false);
+      setSelectedSprintIdsForExport([]);
+    }
+  };
+
   if (!user) {
     return <p className="text-center">Please log in to view your sprint history.</p>;
   }
@@ -402,17 +432,19 @@ const SprintHistoryContainer: React.FC = () => {
 
             {isExportSelectionModeActive && (
               <div ref={exportPanelWrapperRef}>
-                <ExportPanel 
+                <ExportPanel
                   onCancel={() => {
                     setIsExportSelectionModeActive(false);
                     setSelectedSprintIdsForExport([]);
                   }}
-                  onExport={handleExportTxt}
+                  onExportTxt={handleExportTxt}
+                  onExportPdf={handleExportPdf}
                   onSelectAllChange={handleSelectAllVisibleChange}
                   allVisibleSprintsSelected={allVisibleSprintsSelected}
                   selectedCount={selectedSprintIdsForExport.length}
                   totalCount={filteredSprints.length}
-                  disabled={loading}
+                  disabled={loading || exportingPdf} // Disable panel while exporting
+                  exportingPdf={exportingPdf} // Pass exporting state
                 />
               </div>
             )}
@@ -637,7 +669,7 @@ const SprintHistoryContainer: React.FC = () => {
 
         <Col lg={8} md={7}>
           <Card className="shadow-sm h-100">
-            <Card.Header className="bg-body-tertiary">
+            <Card.Header className="bg-body-tertiary d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Sprint Content</h5>
             </Card.Header>
             <Card.Body>

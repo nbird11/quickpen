@@ -1,24 +1,28 @@
 import React from 'react';
-import { Form, Button, Row, Col, Badge } from 'react-bootstrap';
+import { Form, Button, Row, Col, Badge, Spinner } from 'react-bootstrap';
 
 interface ExportPanelProps {
   onCancel: () => void;
-  onExport: () => void;
+  onExportTxt: () => void;
+  onExportPdf: () => void;
   onSelectAllChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   allVisibleSprintsSelected: boolean;
   selectedCount: number;
   totalCount: number;
   disabled: boolean;
+  exportingPdf?: boolean;
 }
 
 const ExportPanel: React.FC<ExportPanelProps> = ({
   onCancel,
-  onExport,
+  onExportTxt,
+  onExportPdf,
   onSelectAllChange,
   allVisibleSprintsSelected,
   selectedCount,
   totalCount,
   disabled,
+  exportingPdf = false,
 }) => {
   return (
     <div className="p-3 border-bottom">
@@ -41,20 +45,48 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
         </Col>
         <Col xs="auto" className="ms-auto">
           <Button
-            variant="danger"
+            variant="outline-danger"
             size="sm"
             onClick={onCancel}
             className="me-2"
+            disabled={disabled}
           >
             Cancel
           </Button>
           <Button
             variant="success"
             size="sm"
-            onClick={onExport}
-            disabled={selectedCount === 0}
+            onClick={onExportTxt}
+            disabled={disabled || selectedCount === 0}
+            className="me-2"
           >
-            Export Selected (.txt)
+            <i className="bi bi-file-earmark-text me-1"></i>
+            .txt
+          </Button>
+          <Button
+            variant="success"
+            size="sm"
+            onClick={onExportPdf}
+            disabled={disabled || selectedCount === 0}
+          >
+            {exportingPdf ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-1"
+                />
+                Generating...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-filetype-pdf me-1"></i>
+                .pdf
+              </>
+            )}
           </Button>
         </Col>
       </Row>
