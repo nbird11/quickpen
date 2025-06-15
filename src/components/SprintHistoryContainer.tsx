@@ -21,10 +21,71 @@ const SprintHistoryContainer: React.FC = () => {
   const [isDateFilterEnabled, setIsDateFilterEnabled] = useState(false);
   const [isContentFilterEnabled, setIsContentFilterEnabled] = useState(false);
 
+  // State for export functionality
+  const [isExportSelectionModeActive, setIsExportSelectionModeActive] = useState(false);
+  const [selectedSprintIdsForExport, setSelectedSprintIdsForExport] = useState<string[]>([]);
+
   // Refs for height calculation
   const headerRef = useRef<HTMLDivElement>(null);
   const filterPanelWrapperRef = useRef<HTMLDivElement>(null);
   const [listAreaTop, setListAreaTop] = useState(120);
+
+  // Memoized filtered sprints based on appliedFilters
+  const filteredSprints = useMemo(() => {
+    return sprints.filter(sprint => {
+      // Tag filtering
+      let tagsMatch = true;
+      if (isTagFilterEnabled && appliedFilters.tags.length > 0) {
+        tagsMatch = appliedFilters.tags.every(filterTag => sprint.tags?.includes(filterTag));
+      }
+
+      // Date range filtering
+      let dateMatch = true;
+      if (isDateFilterEnabled && (appliedFilters.dateRange?.startDate || appliedFilters.dateRange?.endDate)) {
+        const sprintDate = new Date(sprint.completedAt);
+        if (appliedFilters.dateRange?.startDate && appliedFilters.dateRange?.endDate) {
+          const startDate = new Date(appliedFilters.dateRange.startDate);
+          const endDate = new Date(appliedFilters.dateRange.endDate);
+          endDate.setHours(23, 59, 59, 999);
+          dateMatch = sprintDate >= startDate && sprintDate <= endDate;
+        } else if (appliedFilters.dateRange?.startDate) {
+          const startDate = new Date(appliedFilters.dateRange.startDate);
+          dateMatch = sprintDate >= startDate;
+        } else if (appliedFilters.dateRange?.endDate) {
+          const endDate = new Date(appliedFilters.dateRange.endDate);
+          endDate.setHours(23, 59, 59, 999);
+          dateMatch = sprintDate <= endDate;
+        }
+      }
+
+      // Content filtering
+      let contentMatch = true;
+      if (isContentFilterEnabled && appliedFilters.contentQuery && appliedFilters.contentQuery.trim() !== '') {
+        const query = appliedFilters.contentQuery.toLowerCase();
+        contentMatch = sprint.content.toLowerCase().includes(query);
+      }
+
+      return tagsMatch && dateMatch && contentMatch;
+    });
+  }, [sprints, appliedFilters, isTagFilterEnabled, isDateFilterEnabled, isContentFilterEnabled]);
+
+  // Derived state for the "Select All" checkbox
+  const allVisibleSprintsSelected = useMemo(() => {
+    if (!filteredSprints || filteredSprints.length === 0) return false;
+    return filteredSprints.every(sprint => sprint.id && selectedSprintIdsForExport.includes(sprint.id));
+  }, [filteredSprints, selectedSprintIdsForExport]);
+
+  // Handle "Select All" checkbox change
+  const handleSelectAllVisibleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { checked } = e.target;
+    if (checked) {
+      const visibleSprintIds = filteredSprints.map(sprint => sprint.id).filter(id => !!id) as string[];
+      setSelectedSprintIdsForExport(prevSelected => Array.from(new Set([...prevSelected, ...visibleSprintIds])));
+    } else {
+      const visibleSprintIds = filteredSprints.map(sprint => sprint.id);
+      setSelectedSprintIdsForExport(prevSelected => prevSelected.filter(id => !visibleSprintIds.includes(id)));
+    }
+  };
 
   // Function to load sprint history - this should NOT depend on selectedSprint
   const loadSprints = useCallback(async () => {
@@ -74,45 +135,6 @@ const SprintHistoryContainer: React.FC = () => {
       unsubscribe();
     };
   }, [user, loadSprints]); // Ensure loadSprints is stable or correctly memoized if added here
-
-  // Memoized filtered sprints based on appliedFilters
-  const filteredSprints = useMemo(() => {
-    return sprints.filter(sprint => {
-      // Tag filtering
-      let tagsMatch = true;
-      if (isTagFilterEnabled && appliedFilters.tags.length > 0) {
-        tagsMatch = appliedFilters.tags.every(filterTag => sprint.tags?.includes(filterTag));
-      }
-
-      // Date range filtering
-      let dateMatch = true;
-      if (isDateFilterEnabled && (appliedFilters.dateRange?.startDate || appliedFilters.dateRange?.endDate)) {
-        const sprintDate = new Date(sprint.completedAt);
-        if (appliedFilters.dateRange?.startDate && appliedFilters.dateRange?.endDate) {
-          const startDate = new Date(appliedFilters.dateRange.startDate);
-          const endDate = new Date(appliedFilters.dateRange.endDate);
-          endDate.setHours(23, 59, 59, 999);
-          dateMatch = sprintDate >= startDate && sprintDate <= endDate;
-        } else if (appliedFilters.dateRange?.startDate) {
-          const startDate = new Date(appliedFilters.dateRange.startDate);
-          dateMatch = sprintDate >= startDate;
-        } else if (appliedFilters.dateRange?.endDate) {
-          const endDate = new Date(appliedFilters.dateRange.endDate);
-          endDate.setHours(23, 59, 59, 999);
-          dateMatch = sprintDate <= endDate;
-        }
-      }
-
-      // Content filtering
-      let contentMatch = true;
-      if (isContentFilterEnabled && appliedFilters.contentQuery && appliedFilters.contentQuery.trim() !== '') {
-        const query = appliedFilters.contentQuery.toLowerCase();
-        contentMatch = sprint.content.toLowerCase().includes(query);
-      }
-
-      return tagsMatch && dateMatch && contentMatch;
-    });
-  }, [sprints, appliedFilters, isTagFilterEnabled, isDateFilterEnabled, isContentFilterEnabled]);
 
   // 3. Effect to handle keyboard navigation - MUST be separate
   useEffect(() => {
@@ -192,7 +214,7 @@ const SprintHistoryContainer: React.FC = () => {
     }
     // Dependencies: isFilterPanelVisible is crucial.
     // loading (if header changes), sprints/appliedFilters (if FilterPanel content changes affecting its height and it's visible)
-  }, [isFilterPanelVisible, loading, sprints, appliedFilters, headerRef, filterPanelWrapperRef]);
+  }, [isFilterPanelVisible, loading, sprints, appliedFilters, headerRef, filterPanelWrapperRef, isExportSelectionModeActive]);
 
   // Memoize the handleSelectSprint function to prevent unnecessary recreations
   const handleSelectSprint = useCallback((sprint: Sprint) => {
@@ -279,6 +301,63 @@ const SprintHistoryContainer: React.FC = () => {
     }
   };
 
+  const handleExportTxt = () => {
+    if (selectedSprintIdsForExport.length === 0) return;
+
+    // 1. Get full sprint objects for selected IDs
+    const sprintsToExport = sprints
+      .filter(sprint => sprint.id && selectedSprintIdsForExport.includes(sprint.id))
+      // 2. Sort them chronologically (oldest first)
+      .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+
+    if (sprintsToExport.length === 0) return; // Should not happen if selectedSprintIdsForExport is not empty
+
+    // 3. Generate aggregated metadata
+    const firstSprintDate = new Date(sprintsToExport[0].completedAt).toLocaleString();
+    const lastSprintDate = new Date(sprintsToExport[sprintsToExport.length - 1].completedAt).toLocaleString();
+    const totalWordCount = sprintsToExport.reduce((sum, s) => sum + s.wordCount, 0);
+    const totalDurationSeconds = sprintsToExport.reduce((sum, s) => sum + (s.actualDuration || s.duration), 0);
+    
+    // Use existing formatDuration for total duration if it suits, or create a more detailed one
+    const totalWritingTimeFormatted = formatDuration(totalDurationSeconds); // Assuming formatDuration can handle large second counts
+
+    const allTags = Array.from(new Set(sprintsToExport.flatMap(s => s.tags || []))).join(', ');
+
+    const metadataHeader = [
+      `QuickPen Export`,
+      ``,
+      `Number of Sprints Selected: ${sprintsToExport.length}`,
+      `Date Range: ${firstSprintDate} - ${lastSprintDate}`,
+      `Total Word Count: ${totalWordCount}`,
+      `Total Writing Time: ${totalWritingTimeFormatted}`,
+      `All Unique Tags: ${allTags || 'None'}`,
+      ``,
+      `---------------`
+    ].join('\n');
+
+    // 4. Concatenate content
+    const concatenatedContent = sprintsToExport.map(s => s.content).join('\n\n');
+
+    // 5. Combine metadata and content
+    const fullContent = `${metadataHeader}\n\n${concatenatedContent}`;
+
+    // 6. Trigger download
+    const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\.\d+Z$/, 'Z'); // Cleaner timestamp
+    link.download = `QuickPen_Export_${timestamp}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // 7. Optionally reset export mode
+    setIsExportSelectionModeActive(false);
+    setSelectedSprintIdsForExport([]);
+  };
+
   if (!user) {
     return <p className="text-center">Please log in to view your sprint history.</p>;
   }
@@ -289,16 +368,55 @@ const SprintHistoryContainer: React.FC = () => {
         <Col lg={4} md={5}>
           <Card className="shadow-sm h-100 position-relative">
             <Card.Header ref={headerRef} className="bg-body-tertiary d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Sprint History</h5>
-              <Button
-                variant="link"
-                onClick={() => setIsFilterPanelVisible(!isFilterPanelVisible)}
-                aria-label={isFilterPanelVisible ? "Hide filters" : "Show filters"}
-                title={isFilterPanelVisible ? "Hide filters" : "Show filters"}
-                className="p-1 text-secondary"
-              >
-                <i className={`bi ${isFilterPanelVisible ? 'bi-funnel-fill' : 'bi-funnel'}`} style={{ fontSize: '1.25rem' }}></i>
-              </Button>
+              <div className="d-flex align-items-center">
+                <h5 className="mb-0 me-3">Sprint History</h5>
+                {isExportSelectionModeActive && (
+                  <Form.Check
+                    type="checkbox"
+                    id="select-all-sprints-checkbox"
+                    label="Select All (Visible)"
+                    checked={allVisibleSprintsSelected}
+                    onChange={handleSelectAllVisibleChange}
+                    className="me-2"
+                    disabled={filteredSprints.length === 0}
+                  />
+                )}
+              </div>
+              <div className="d-flex align-items-center">
+                {isExportSelectionModeActive && (
+                  <Button
+                    variant={selectedSprintIdsForExport.length === 0 ? "outline-primary" : "primary"}
+                    size="sm"
+                    onClick={handleExportTxt}
+                    disabled={selectedSprintIdsForExport.length === 0}
+                    className="me-2"
+                  >
+                    Export Selected (.txt)
+                  </Button>
+                )}
+                <Button
+                  variant={isExportSelectionModeActive ? "outline-danger" : "outline-primary"}
+                  size="sm"
+                  onClick={() => {
+                    if (isExportSelectionModeActive) {
+                      setSelectedSprintIdsForExport([]); // Clear selections when cancelling
+                    }
+                    setIsExportSelectionModeActive(!isExportSelectionModeActive);
+                  }}
+                  className="me-2"
+                >
+                  {isExportSelectionModeActive ? "Cancel Export" : "Prepare Export"}
+                </Button>
+                <Button
+                  variant="link"
+                  onClick={() => setIsFilterPanelVisible(!isFilterPanelVisible)}
+                  aria-label={isFilterPanelVisible ? "Hide filters" : "Show filters"}
+                  title={isFilterPanelVisible ? "Hide filters" : "Show filters"}
+                  className="p-1 text-secondary"
+                >
+                  <i className={`bi ${isFilterPanelVisible ? 'bi-funnel-fill' : 'bi-funnel'}`} style={{ fontSize: '1.25rem' }}></i>
+                </Button>
+              </div>
             </Card.Header>
             
             {isFilterPanelVisible && (
@@ -347,50 +465,78 @@ const SprintHistoryContainer: React.FC = () => {
                       </ListGroup.Item>
                     ) : (
                       filteredSprints.map(sprint => {
-                        const isSelected = selectedSprint?.id === sprint.id;
+                        if (!sprint || !sprint.id) return null; // Guard against undefined sprint or id
+
+                        const isSelectedForViewing = selectedSprint?.id === sprint.id;
+                        const isCheckedForExport = selectedSprintIdsForExport.includes(sprint.id);
+
+                        const handleCheckboxChange = () => {
+                          if (!sprint.id) return; // Should not happen due to guard above, but good for safety
+                          setSelectedSprintIdsForExport(prevSelectedIds =>
+                            isCheckedForExport
+                              ? prevSelectedIds.filter(id => id !== sprint.id)
+                              : [...prevSelectedIds, sprint.id!]
+                          );
+                        };
+
                         return (
                           <ListGroup.Item
                             key={sprint.id}
                             action
-                            active={isSelected}
-                            onClick={() => handleSelectSprint(sprint)}
-                            className="border-bottom"
+                            active={isSelectedForViewing && !isExportSelectionModeActive}
+                            onClick={() => !isExportSelectionModeActive && handleSelectSprint(sprint)}
+                            className="border-bottom d-flex align-items-center" // d-flex for checkbox and content alignment
+                            style={isExportSelectionModeActive && isCheckedForExport ? { backgroundColor: 'var(--bs-primary-bg-subtle)' } : {}}
                           >
-                            <div className="d-flex justify-content-between align-items-start">
-                              <div>
-                                <div className="mb-1">
-                                  <strong>{sprint.wordCount} words</strong>
-                                  {sprint.tags && sprint.tags.length > 0 && (
-                                    <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
-                                      {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-muted small">
-                                  {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
-                                </div>
-                              </div>
-                              <div className="text-end">
-                                <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
-                                <div className="text-muted small">
-                                  {sprint.endedEarly ? 'Ended early' : 'Completed'}
-                                </div>
-                              </div>
-                            </div>
-                            {sprint.tags && sprint.tags.length > 0 && (
-                              <div className="mt-2">
-                                {sprint.tags.map(tag => (
-                                  <Badge
-                                    key={tag}
-                                    bg="accent1"
-                                    className="me-1 mb-1"
-                                    style={{ fontSize: '0.7rem' }}
-                                  >
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
+                            {isExportSelectionModeActive && (
+                              <Form.Check
+                                type="checkbox"
+                                id={`sprint-checkbox-${sprint.id}`}
+                                checked={isCheckedForExport}
+                                onChange={handleCheckboxChange}
+                                onClick={(e) => e.stopPropagation()} // Prevent ListGroup.Item onClick
+                                className="me-3 flex-shrink-0" // flex-shrink-0 to prevent checkbox from shrinking
+                                aria-label={`Select sprint completed at ${sprint.completedAt.toLocaleString()}`}
+                              />
                             )}
+                            {/* This div now wraps all sprint content details, allowing checkbox to be a direct sibling for flex alignment */}
+                            <div className="flex-grow-1">
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div>
+                                  <div className="mb-1">
+                                    <strong>{sprint.wordCount} words</strong>
+                                    {sprint.tags && sprint.tags.length > 0 && (
+                                      <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
+                                        {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-muted small">
+                                    {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
+                                  </div>
+                                </div>
+                                <div className="text-end">
+                                  <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
+                                  <div className="text-muted small">
+                                    {sprint.endedEarly ? 'Ended early' : 'Completed'}
+                                  </div>
+                                </div>
+                              </div>
+                              {sprint.tags && sprint.tags.length > 0 && (
+                                <div className="mt-2">
+                                  {sprint.tags.map(tag => (
+                                    <Badge
+                                      key={tag}
+                                      bg="accent1"
+                                      className="me-1 mb-1"
+                                      style={{ fontSize: '0.7rem' }}
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </ListGroup.Item>
                         );
                       })
@@ -409,50 +555,77 @@ const SprintHistoryContainer: React.FC = () => {
                       </ListGroup.Item>
                     ) : (
                       filteredSprints.map(sprint => {
-                        const isSelected = selectedSprint?.id === sprint.id;
+                        if (!sprint || !sprint.id) return null; // Guard for mobile view as well
+
+                        const isSelectedForViewing = selectedSprint?.id === sprint.id;
+                        const isCheckedForExport = selectedSprintIdsForExport.includes(sprint.id);
+
+                        const handleCheckboxChangeMobile = () => {
+                          if (!sprint.id) return;
+                          setSelectedSprintIdsForExport(prevSelectedIds =>
+                            isCheckedForExport
+                              ? prevSelectedIds.filter(id => id !== sprint.id)
+                              : [...prevSelectedIds, sprint.id!]
+                          );
+                        };
+
                         return (
                           <ListGroup.Item
-                            key={sprint.id}
+                            key={`mobile-${sprint.id}`}
                             action
-                            active={isSelected}
-                            onClick={() => handleSelectSprint(sprint)}
-                            className="border-bottom"
+                            active={isSelectedForViewing && !isExportSelectionModeActive}
+                            onClick={() => !isExportSelectionModeActive && handleSelectSprint(sprint)}
+                            className="border-bottom d-flex align-items-center"
+                            style={isExportSelectionModeActive && isCheckedForExport ? { backgroundColor: 'var(--bs-primary-bg-subtle)' } : {}}
                           >
-                            <div className="d-flex justify-content-between align-items-start">
-                              <div>
-                                <div className="mb-1">
-                                  <strong>{sprint.wordCount} words</strong>
-                                  {sprint.tags && sprint.tags.length > 0 && (
-                                    <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
-                                      {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-muted small">
-                                  {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
-                                </div>
-                              </div>
-                              <div className="text-end">
-                                <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
-                                <div className="text-muted small">
-                                  {sprint.endedEarly ? 'Ended early' : 'Completed'}
-                                </div>
-                              </div>
-                            </div>
-                            {sprint.tags && sprint.tags.length > 0 && (
-                              <div className="mt-2">
-                                {sprint.tags.map(tag => (
-                                  <Badge
-                                    key={tag}
-                                    bg="accent1"
-                                    className="me-1 mb-1"
-                                    style={{ fontSize: '0.7rem' }}
-                                  >
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
+                            {isExportSelectionModeActive && (
+                              <Form.Check
+                                type="checkbox"
+                                id={`sprint-checkbox-mobile-${sprint.id}`}
+                                checked={isCheckedForExport}
+                                onChange={handleCheckboxChangeMobile}
+                                onClick={(e) => e.stopPropagation()}
+                                className="me-3 flex-shrink-0"
+                                aria-label={`Select sprint completed at ${sprint.completedAt.toLocaleString()} (mobile)`}
+                              />
                             )}
+                            <div className="flex-grow-1">
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div>
+                                  <div className="mb-1">
+                                    <strong>{sprint.wordCount} words</strong>
+                                    {sprint.tags && sprint.tags.length > 0 && (
+                                      <Badge bg="accent2" pill className="ms-2" style={{ fontSize: '0.65rem' }}>
+                                        {sprint.tags.length} {sprint.tags.length === 1 ? 'tag' : 'tags'}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-muted small">
+                                    {formatDistanceToNow(new Date(sprint.completedAt), { addSuffix: true })}
+                                  </div>
+                                </div>
+                                <div className="text-end">
+                                  <div className="mb-1">{formatDuration(sprint.actualDuration || sprint.duration)}</div>
+                                  <div className="text-muted small">
+                                    {sprint.endedEarly ? 'Ended early' : 'Completed'}
+                                  </div>
+                                </div>
+                              </div>
+                              {sprint.tags && sprint.tags.length > 0 && (
+                                <div className="mt-2">
+                                  {sprint.tags.map(tag => (
+                                    <Badge
+                                      key={tag}
+                                      bg="accent1"
+                                      className="me-1 mb-1"
+                                      style={{ fontSize: '0.7rem' }}
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </ListGroup.Item>
                         );
                       })

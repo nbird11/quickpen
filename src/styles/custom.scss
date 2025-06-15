@@ -22,6 +22,10 @@ $light: #F8F8F8; // Light background
 $theme-colors: (
   "primary": $primary,
   "secondary": $secondary,
+  "success": #198754, // Default Bootstrap success
+  "info": #0dcaf0, // Default Bootstrap info
+  "warning": #ffc107, // Default Bootstrap warning
+  "danger": #dc3545, // Default Bootstrap danger
   "light": $light,
   "dark": $dark,
   "accent1": $accent1,
