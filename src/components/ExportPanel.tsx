@@ -21,7 +21,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
   disabled,
 }) => {
   return (
-    <div className="p-3 border-bottom bg-light">
+    <div className="p-3 border-bottom">
       <Row className="align-items-center g-3">
         <Col xs="auto">
           <Form.Check
@@ -35,7 +35,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
           />
         </Col>
         <Col>
-          <Badge pill bg="primary" className="p-2 fs-6">
+          <Badge pill bg="accent2" className="p-2 fs-6">
             {selectedCount} / {totalCount} selected
           </Badge>
         </Col>
@@ -62,4 +62,4 @@ const ExportPanel: React.FC<ExportPanelProps> = ({
   );
 };
 
-export default ExportPanel; 
+export default ExportPanel;
