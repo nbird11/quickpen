@@ -748,13 +748,18 @@ const SprintHistoryContainer: React.FC = () => {
 
                   <div className="d-flex flex-wrap justify-content-between text-muted small gap-3 border-top pt-3">
                     <div>
+                      <strong>Words:</strong> {selectedSprint.wordCount}
+                    </div>
+                    <div>
+                      <strong>WPM:</strong> {
+                        Math.round(selectedSprint.wordCount / ((selectedSprint.actualDuration || selectedSprint.duration) / 60))
+                      }
+                    </div>
+                    <div>
                       <strong>Duration:</strong> {formatDuration(selectedSprint.actualDuration || selectedSprint.duration)}
                     </div>
                     <div>
                       <strong>Completed:</strong> {selectedSprint.completedAt.toLocaleString()}
-                    </div>
-                    <div>
-                      <strong>Words:</strong> {selectedSprint.wordCount}
                     </div>
                   </div>
                 </>
