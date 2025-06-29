@@ -25,6 +25,7 @@ export function Navbar() {
           },
           {
             provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+            signInMethod: firebase.auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD,
             requireDisplayName: false,
           },
           firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
